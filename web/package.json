@@ -1,0 +1,29 @@
+{
+  "name": "deskmate-office-standalone",
+  "version": "0.0.0",
+  "private": true,
+  "description": "STANDALONE SCAFFOLD for the office and process module only. Replaced by the root package.json from deskmate-core at merge - delete this file then.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.standalone.config.ts",
+    "build": "tsc -p tsconfig.standalone.json --noEmit && vite build --config vite.standalone.config.ts",
+    "typecheck": "tsc -p tsconfig.standalone.json --noEmit",
+    "test": "tsx --test 'src/**/*.test.ts'",
+    "sync:sample": "node standalone/sync-sample.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  }
+}

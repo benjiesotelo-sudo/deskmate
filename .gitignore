@@ -13,3 +13,6 @@ data/index/
 npm-debug.log*
 .vite/
 coverage/
+
+# office module standalone build output
+web/dist-standalone/

@@ -1,0 +1,27 @@
+/* STANDALONE SCAFFOLD styles - the real shell comes from deskmate-core. */
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+}
+.standalone-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 32px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.standalone-bar nav {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+.standalone-bar a {
+  color: var(--ink);
+}
+.standalone-bar span {
+  color: var(--ink-faint);
+  font-size: 12px;
+}
