@@ -31,7 +31,16 @@ export function tokens(text: string): string[] {
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter((t) => t.length > 1 && !STOP.has(t))
-    .map((t) => (t.length > 4 ? t.replace(/(ing|ed|es|s)$/, "") : t));
+    .map(stem);
+}
+
+// A very small stemmer, so "release", "releases" and "releasing" all meet.
+function stem(word: string): string {
+  if (word.length <= 4) return word;
+  return word
+    .replace(/(ing|ed|es|s)$/, "")
+    .replace(/e$/, "")
+    .replace(/(.)\1$/, "$1");
 }
 
 export function cosine(a: number[], b: number[]): number {

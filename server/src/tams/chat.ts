@@ -46,9 +46,9 @@ function systemPrompt(): string {
     "You help staff, especially new hires, find documents and follow the office's documented processes.",
     "Rules:",
     "- Answer ONLY from the numbered office excerpts in the user's message. Do not use outside knowledge.",
-    "- After each fact or step, cite the excerpt it came from in square brackets, like [1].",
-    "- When the excerpts describe a process, give the steps in order as a short numbered list, and say who does each step when the excerpt says so.",
-    "- Use the office's own real example when one is given.",
+    "- Cite the excerpt a fact came from in square brackets, like [1]. One citation at the end of a sentence or a list is enough.",
+    "- When the excerpts describe a process, list every step in order as a numbered list. Each step is one line: what to do, who does it, and the one detail that matters most.",
+    "- End a process answer with the office's own real example in one sentence, when the excerpts give one.",
     `- If the excerpts do not answer the question, say plainly that you could not find it in the office's documents, and suggest asking ${admin?.name ?? "the office administrator"}. Do not guess.`,
     "- Keep it short and warm. Use plain dashes, never long dashes. No preamble.",
   ].join("\n");
@@ -96,6 +96,7 @@ export async function answer(turns: Turn[], requested: Mode, write: (text: strin
 
   let mode: Mode = requested;
   let notice: string | undefined;
+  let lookupOnly = false;
   let text = "";
   const emit = (piece: string) => {
     text += piece;
@@ -123,6 +124,7 @@ export async function answer(turns: Turn[], requested: Mode, write: (text: strin
     if (!state.reachable || !state.chatReady) {
       // No model at all. Still useful: show what the office has on the question.
       emit(offlineFallback(sources, state.reachable));
+      lookupOnly = true;
       notice = notice ?? "The local model is not running, so this is a direct lookup of the office documents.";
     } else {
       const messages: ChatMessage[] = [{ role: "system", content: system }, ...history, { role: "user", content: prompt }];
@@ -140,7 +142,7 @@ export async function answer(turns: Turn[], requested: Mode, write: (text: strin
     sources: shown.filter((s) => s.type === "document").map((s) => ({ docId: s.id, title: s.title, n: s.n })),
     processes: shown.filter((s) => s.type === "process").map((s) => ({ processId: s.id, title: s.title, n: s.n })),
     mode,
-    model: mode === "cloud" ? CLOUD_MODEL : CHAT_MODEL,
+    model: lookupOnly ? "lookup" : mode === "cloud" ? CLOUD_MODEL : CHAT_MODEL,
     retrieval: sources.length ? retrieval.method : "none",
   };
   if (retrieval.processId && processes().some((p) => p.id === retrieval.processId)) frame.processId = retrieval.processId;

@@ -89,3 +89,11 @@ export function updateDocument(id: string, patch: DocPatch): DocRecord | undefin
   const { body: _body, ...record } = getDocument(id)!;
   return record;
 }
+
+export function setDocumentPath(id: string, newPath: string): DocRecord | undefined {
+  db.prepare("UPDATE documents SET path = ? WHERE id = ?").run(newPath, id);
+  const doc = getDocument(id);
+  if (!doc) return undefined;
+  const { body: _body, ...record } = doc;
+  return record;
+}

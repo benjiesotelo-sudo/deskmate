@@ -16,7 +16,7 @@
     "index": "tsx server/src/cli/reindex.ts",
     "samples": "tsx scripts/build-sample-office.ts",
     "typecheck": "tsc -p server --noEmit && tsc -p web --noEmit",
-    "test": "tsx --test server/src/**/*.test.ts"
+    "test": "tsx --test \"server/src/**/*.test.ts\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

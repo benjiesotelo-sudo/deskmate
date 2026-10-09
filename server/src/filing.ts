@@ -16,6 +16,28 @@ export function slugify(text: string): string {
 const SINGLE_LINE: Kind[] = ["syllabus", "deck", "materials", "quiz", "book"];
 const COURSE_WIDE: Kind[] = ["syllabus", "book"];
 
+function folderFor(course: string, chapter: number | null): string {
+  if (course === "OFFICE") return "documents/OFFICE";
+  return chapter === null ? `documents/${course}/course` : `documents/${course}/chapter-${pad(chapter)}`;
+}
+
+function stemFor(course: string, chapter: number | null, kind: Kind, title: string): string {
+  const usesSlug = course === "OFFICE" || !SINGLE_LINE.includes(kind);
+  const slug = usesSlug ? slugify(title) || kind : kind;
+  return `${course}${course !== "OFFICE" && chapter !== null ? `-ch${pad(chapter)}` : ""}-${slug}`;
+}
+
+// Where a filed document belongs, given its record. Used to move the file when the record is edited.
+export function canonicalPath(doc: DocRecord): string {
+  const extension = doc.path.includes(".") ? doc.path.slice(doc.path.lastIndexOf(".")) : "";
+  const chapter = doc.course === "OFFICE" || COURSE_WIDE.includes(doc.kind) ? null : doc.chapter;
+  // Office and free-form documents keep the name they were filed under.
+  if (doc.course === "OFFICE" || !SINGLE_LINE.includes(doc.kind)) {
+    return `${folderFor(doc.course, chapter)}/${doc.path.slice(doc.path.lastIndexOf("/") + 1)}`;
+  }
+  return `${folderFor(doc.course, chapter)}/${stemFor(doc.course, chapter, doc.kind, doc.title)}-v${doc.version}${extension}`;
+}
+
 export type FilingInput = { course: string; chapter: number | null; kind: Kind; title?: string; extension?: string };
 
 export type FilingAdvice = {
@@ -51,13 +73,8 @@ export function adviseFiling(input: FilingInput): FilingAdvice {
   }
 
   const usesSlug = isOffice || !SINGLE_LINE.includes(input.kind);
-  const slug = usesSlug ? slugify(input.title ?? "") || input.kind : input.kind;
-  const folder = isOffice
-    ? "documents/OFFICE"
-    : chapter === null
-      ? `documents/${input.course}/course`
-      : `documents/${input.course}/chapter-${pad(chapter)}`;
-  const stem = `${input.course}${!isOffice && chapter !== null ? `-ch${pad(chapter)}` : ""}-${slug}`;
+  const folder = folderFor(input.course, chapter);
+  const stem = stemFor(input.course, chapter, input.kind, input.title ?? "");
 
   const line = listDocuments({ course: input.course })
     .filter((d) => d.kind === input.kind && d.chapter === chapter)

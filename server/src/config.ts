@@ -34,7 +34,8 @@ export const IS_PROD = process.env.NODE_ENV === "production";
 export const SAMPLE_OFFICE_DIR = path.join(ROOT, "data", "sample-office");
 // The working copy of the office. Seeded from the sample office, then edited by the app.
 export const OFFICE_DIR = env("DESKMATE_OFFICE_DIR") ? path.resolve(env("DESKMATE_OFFICE_DIR")!) : path.join(ROOT, "data", "office");
-export const DB_PATH = env("DESKMATE_DB") ? path.resolve(env("DESKMATE_DB")!) : path.join(ROOT, "data", "deskmate.sqlite");
+const dbSetting = env("DESKMATE_DB");
+export const DB_PATH = dbSetting === ":memory:" ? dbSetting : dbSetting ? path.resolve(dbSetting) : path.join(ROOT, "data", "deskmate.sqlite");
 export const WEB_DIST = path.join(ROOT, "web", "dist");
 
 export const OLLAMA_HOST = (env("OLLAMA_HOST") ?? "http://127.0.0.1:11434").replace(/\/$/, "");

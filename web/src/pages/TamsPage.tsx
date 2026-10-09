@@ -269,7 +269,11 @@ function Answer({ message }: { message: Message }) {
             )}
             {frame.notice && <p className="notice">{frame.notice}</p>}
             <p className="answer-meta">
-              {frame.mode === "cloud" ? `Answered in the cloud by ${frame.model}.` : `Answered on this machine by ${frame.model}. Nothing left the computer.`}
+              {frame.mode === "cloud"
+                ? `Answered in the cloud by ${frame.model}.`
+                : frame.model === "lookup"
+                  ? "Looked up on this machine without a model. Nothing left the computer."
+                  : `Answered on this machine by ${frame.model}. Nothing left the computer.`}
               {sources.length === 0 && frame.retrieval === "none" ? " No office document matched this question." : ""}
             </p>
           </div>

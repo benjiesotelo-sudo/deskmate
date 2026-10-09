@@ -4,9 +4,9 @@ import express, { Router, type Request, type Response } from "express";
 import { CHAT_MODEL, EMBED_MODEL, OFFICE_DIR } from "./config.ts";
 import { currentPerson, endSession, requireAdmin, requireAuth, signIn, startSession } from "./auth.ts";
 import { db, getMeta } from "./db.ts";
-import { getDocument, insertDocument, listDocuments, updateDocument, type DocPatch } from "./documents.ts";
+import { getDocument, insertDocument, listDocuments, setDocumentPath, updateDocument, type DocPatch } from "./documents.ts";
 import { extractText, TEXT_EXTENSIONS } from "./extract.ts";
-import { adviseFiling } from "./filing.ts";
+import { adviseFiling, canonicalPath } from "./filing.ts";
 import { courses, office, officePath, peopleFile, processes } from "./office.ts";
 import { computeReadiness } from "./readiness.ts";
 import { writeDocumentsFile } from "./seed.ts";
@@ -144,7 +144,8 @@ api.get("/api/documents/:id/file", (req, res) => {
     res.status(404).json({ error: "The record exists but its file is missing from the office folder." });
     return;
   }
-  res.download(file, path.basename(file));
+  // dotfiles: allow, because the repo itself may live under a dot folder.
+  res.download(file, path.basename(file), { dotfiles: "allow" });
 });
 
 function validCourse(id: string): boolean {
@@ -218,7 +219,15 @@ api.patch("/api/documents/:id", json, (req, res) => {
     res.status(parsed.status ?? 400).json({ error: parsed.error });
     return;
   }
-  const updated = updateDocument(id, parsed.patch)!;
+  let updated = updateDocument(id, parsed.patch)!;
+  // Keep the file where the record says it belongs: if the course, chapter,
+  // kind or version changed, the file moves to its new folder and name.
+  const target = canonicalPath(updated);
+  if (target !== updated.path && fs.existsSync(officePath(updated.path)) && !fs.existsSync(officePath(target))) {
+    fs.mkdirSync(path.dirname(officePath(target)), { recursive: true });
+    fs.renameSync(officePath(updated.path), officePath(target));
+    updated = setDocumentPath(id, target)!;
+  }
   const superseded = supersedeOthers(updated);
   writeDocumentsFile();
   if (parsed.patch.title && parsed.patch.title !== doc.title) void indexDocument(id);

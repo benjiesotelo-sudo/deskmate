@@ -31,7 +31,7 @@ if (IS_PROD) {
   app.use(express.static(WEB_DIST, { index: false, maxAge: "1h" }));
   app.use((req, res, next) => {
     if (req.method !== "GET") return next();
-    res.sendFile(path.join(WEB_DIST, "index.html"));
+    res.sendFile("index.html", { root: WEB_DIST });
   });
 } else {
   // In development the same port also serves the web app through Vite, with hot reload.
