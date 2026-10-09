@@ -56,13 +56,18 @@ async function withFallback<T>(apiUrl: string, sampleUrl: string, key: string): 
 // Document titles are a nicety for labels; ids are shown when they cannot be loaded.
 async function loadDocumentTitles(): Promise<Record<string, string>> {
   try {
-    const { list } = await withFallback<{ id?: string; title?: string; name?: string }>(
+    const { list } = await withFallback<{ id?: string; title?: string; name?: string; version?: number; status?: string }>(
       "/api/documents",
       "/sample/documents.json",
       "documents",
     );
     const titles: Record<string, string> = {};
-    for (const doc of list) if (doc.id) titles[doc.id] = doc.title ?? doc.name ?? doc.id;
+    for (const doc of list) {
+      if (!doc.id) continue;
+      // Two versions of one document share a title, so the version is part of the label.
+      const notes = [doc.version ? `v${doc.version}` : "", doc.status === "superseded" ? "superseded" : ""].filter(Boolean);
+      titles[doc.id] = `${doc.title ?? doc.name ?? doc.id}${notes.length > 0 ? ` (${notes.join(", ")})` : ""}`;
+    }
     return titles;
   } catch {
     return {};

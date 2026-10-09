@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { PersonChip } from "../avatars/PersonChip.tsx";
 import { participants, personById, useOffice, type OfficeData } from "./api.ts";
 import { ArrowIcon, BackIcon, DocIcon, NextIcon, PauseIcon, PlayIcon, RestartIcon } from "./icons.tsx";
-import { layoutProcess } from "./layout.ts";
+import { readingOrder } from "./layout.ts";
 import { links } from "./links.ts";
 import { usePlayback, type Playback } from "./playback.ts";
 import { ProcessEditor } from "./ProcessEditor.tsx";
@@ -44,11 +44,6 @@ export function PageNote({ children, tone }: { children: React.ReactNode; tone?:
       </p>
     </main>
   );
-}
-
-// Steps in reading order: left to right as drawn, branches after the main line of their column.
-export function readingOrder(process: OfficeProcess): ProcessStep[] {
-  return [...layoutProcess(process).nodes].sort((a, b) => a.column - b.column || a.row - b.row).map((node) => node.step);
 }
 
 function ProcessView({ process, data }: { process: OfficeProcess; data: OfficeData }) {
@@ -271,7 +266,7 @@ function StepPanel({
       <div className="step-actor">
         <PersonChip person={actor} fallbackId={step.actor} size={34} showRole />
       </div>
-      <p className="step-description">{step.description}</p>
+      {step.description ? <p className="step-description">{step.description}</p> : null}
       {step.example ? (
         <div className="step-example">
           <span className="dm-eyebrow">For example</span>
@@ -341,7 +336,7 @@ function StepChecklist({ process, ordered, data }: { process: OfficeProcess; ord
               </div>
               <div className="check-body">
                 <PersonChip person={actor} fallbackId={step.actor} size={24} showRole />
-                <p>{step.description}</p>
+                {step.description ? <p>{step.description}</p> : null}
                 {step.example ? (
                   <p className="check-example">
                     <span className="dm-eyebrow">For example</span> {step.example}

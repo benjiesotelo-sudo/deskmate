@@ -104,6 +104,17 @@ export function layoutProcess(process: OfficeProcess): FlowLayout {
     return value;
   };
 
+  const ends = new Map<string, boolean>();
+  const finishes = (id: string): boolean => {
+    const known = ends.get(id);
+    if (known !== undefined) return known;
+    ends.set(id, false);
+    const current = byId.get(id) as ProcessStep;
+    const value = current.kind === "end" || forward(current).some((nextId) => finishes(nextId));
+    ends.set(id, value);
+    return value;
+  };
+
   // 4. Rows: a step inherits its parent's row when free, branches stack below.
   const row = new Map<string, number>();
   const taken = new Map<number, Set<number>>();
@@ -116,10 +127,12 @@ export function layoutProcess(process: OfficeProcess): FlowLayout {
     used.add(r);
     taken.set(col, used);
     row.set(id, r);
-    // The child furthest along is where detours rejoin, so it keeps this row; then the longest tail.
+    // The child furthest along is where detours rejoin, so it keeps this row. After that, a branch
+    // that goes on to an end beats one that only loops back, and then the longest tail wins.
     const children = [...forward(byId.get(id) as ProcessStep)].sort(
       (a, b) =>
         (column.get(b) ?? 0) - (column.get(a) ?? 0) ||
+        Number(finishes(b)) - Number(finishes(a)) ||
         remainingOf(b) - remainingOf(a) ||
         (order.get(a) ?? 0) - (order.get(b) ?? 0),
     );
@@ -248,4 +261,9 @@ function backEdge(id: string, from: FlowNode, to: FlowNode): FlowEdge {
     tip: { x: endX, y: endY, direction: "up" },
     path: `M ${from.x} ${from.y - from.halfH} V ${laneY + radius} Q ${from.x} ${laneY} ${from.x - radius} ${laneY} H ${endX + radius} Q ${endX} ${laneY} ${endX} ${laneY - radius} V ${endY + ARROW}`,
   };
+}
+
+// Steps in reading order: left to right as drawn, a branch after the main line of its column.
+export function readingOrder(process: OfficeProcess): ProcessStep[] {
+  return [...layoutProcess(process).nodes].sort((a, b) => a.column - b.column || a.row - b.row).map((node) => node.step);
 }

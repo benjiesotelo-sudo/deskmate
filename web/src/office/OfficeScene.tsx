@@ -50,7 +50,7 @@ function NameTag({ at, text, dy, away = false }: { at: Point; text: string; dy: 
   const width = Math.max(58, text.length * 9.4 + 26);
   return (
     <g className={`name-tag${away ? " is-away" : ""}`} transform={`translate(${at.x} ${at.y + dy})`}>
-      <rect x={-width / 2} y={-13} width={width} height={26} rx={13} />
+      <rect x={-width / 2} y={-12} width={width} height={24} rx={12} />
       <text textAnchor="middle" y={5.5}>
         {text}
       </text>
@@ -184,7 +184,7 @@ export function OfficeScene({
           return (
             <g key={person.id} className="desk is-away" aria-hidden="true">
               <Desk at={at} away />
-              <NameTag at={at} text={`${name} - at home`} dy={56} away />
+              <NameTag at={at} text={`${name} - at home`} dy={54} away />
             </g>
           );
         }
@@ -194,7 +194,7 @@ export function OfficeScene({
             <Desk at={at} away={false}>
               <Seated person={person} at={at} />
             </Desk>
-            <NameTag at={at} text={name} dy={56} />
+            <NameTag at={at} text={name} dy={54} />
             <rect className="hit" x={at.x - 76} y={at.y - 96} width={152} height={176} rx={18} />
           </g>
         );

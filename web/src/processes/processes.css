@@ -688,11 +688,17 @@
   overflow: hidden;
 }
 
-.flow-decision .flow-actor,
 .flow-start .flow-actor,
 .flow-end .flow-actor {
   top: -12px;
   left: -16px;
+}
+
+/* a decision carries its question above it, so its badge sits at the lower left */
+.flow-decision .flow-actor {
+  top: auto;
+  bottom: -10px;
+  left: -14px;
 }
 
 .flow-node.is-visited .flow-task-shape,

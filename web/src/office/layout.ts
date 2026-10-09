@@ -8,8 +8,8 @@ export const ROOM = { x: 20, y: 20, width: 944, height: 680 };
 export const HOME = { x: 988, y: 20, width: 272, height: 680 };
 export const FRONT_DESK = { x: 176, y: 626 };
 // Desk centres are fitted into this band of the room, whatever units `desk.x/y` use.
-const DESK_AREA = { left: 150, right: 836, top: 164, bottom: 376 };
-const DESK_PITCH = { x: 228, y: 106 }; // widest sensible gap between neighbouring grid cells
+const DESK_AREA = { left: 150, right: 836, top: 164, bottom: 384 };
+const DESK_PITCH = { x: 228, y: 110 }; // widest sensible gap between neighbouring grid cells
 
 export type Point = { x: number; y: number };
 
