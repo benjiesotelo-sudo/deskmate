@@ -1,7 +1,7 @@
 import type { RouteObject } from "react-router-dom";
-import { OfficePage } from "../office/OfficePage.tsx";
-import { ProcessListPage } from "./ProcessListPage.tsx";
-import { ProcessPage } from "./ProcessPage.tsx";
+import { OfficePage } from "../office/OfficePage";
+import { ProcessListPage } from "./ProcessListPage";
+import { ProcessPage } from "./ProcessPage";
 
 // The routes this module owns. The app shell registers them in its router:
 //   /office (and /office?play=<processId>), /processes, /processes/:id

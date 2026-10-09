@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { AvatarHead } from "../avatars/Avatar.tsx";
-import { PersonChip } from "../avatars/PersonChip.tsx";
-import { firstName, personById, type OfficeData } from "../processes/api.ts";
-import { PlayIcon } from "../processes/icons.tsx";
-import { links } from "../processes/links.ts";
+import { AvatarHead } from "../avatars/Avatar";
+import { PersonChip } from "../avatars/PersonChip";
+import { firstName, personById, type OfficeData } from "../processes/api";
+import { PlayIcon } from "../processes/icons";
+import { links } from "../processes/links";
 
 type Props = { data: OfficeData; playingId: string | null; activeActor: string | null; onPickPerson: (id: string) => void };
 

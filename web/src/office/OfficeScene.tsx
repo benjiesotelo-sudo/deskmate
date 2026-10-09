@@ -1,10 +1,10 @@
 import type { KeyboardEvent, ReactNode } from "react";
-import { AvatarFigure } from "../avatars/Avatar.tsx";
-import { TamsFigure } from "../avatars/Tams.tsx";
-import { OUTLINE } from "../avatars/tokens.ts";
-import { firstName } from "../processes/api.ts";
-import type { Person } from "../processes/types.ts";
-import { FRONT_DESK, HOME, placeDesks, placeHome, ROOM, SCENE, type Point } from "./layout.ts";
+import { AvatarFigure } from "../avatars/Avatar";
+import { TamsFigure } from "../avatars/Tams";
+import { OUTLINE } from "../avatars/tokens";
+import { firstName } from "../processes/api";
+import type { Person } from "../processes/types";
+import { FRONT_DESK, HOME, placeDesks, placeHome, ROOM, SCENE, type Point } from "./layout";
 
 export type SceneSelection = { kind: "person"; id: string } | { kind: "tams" } | null;
 
@@ -62,7 +62,7 @@ function Desk({ at, away, children }: { at: Point; away: boolean; children?: Rea
   return (
     <g>
       <ellipse className="desk-glow" cx={at.x} cy={at.y + 10} rx={96} ry={50} />
-      <rect x={at.x - 21} y={at.y - 56} width={42} height={46} rx={12} fill="#39446e" {...LINE} />
+      <rect x={at.x - 21} y={at.y - 56} width={42} height={46} rx={12} fill="var(--stage-rule, #3a3f86)" {...LINE} />
       {children}
       <rect className="desk-front" x={at.x - 64} y={at.y + 6} width={128} height={34} rx={9} fill="#b98a57" {...LINE} />
       <rect className="desk-top" x={at.x - 66} y={at.y - 16} width={132} height={38} rx={10} fill="#e6c08d" {...LINE} />
@@ -74,7 +74,7 @@ function Desk({ at, away, children }: { at: Point; away: boolean; children?: Rea
       ) : (
         <g>
           <rect x={at.x + 6} y={at.y - 22} width={42} height={27} rx={5} fill="#414b63" {...LINE} strokeWidth={2.6} />
-          <circle cx={at.x + 27} cy={at.y - 8.5} r={3.2} fill="#f4a62a" />
+          <circle cx={at.x + 27} cy={at.y - 8.5} r={3.2} fill="var(--accent, #ff5a3c)" />
           <rect x={at.x - 52} y={at.y - 8} width={30} height={20} rx={3} fill="#fffaf0" {...LINE} strokeWidth={2.2} />
           <path d={`M${at.x - 46} ${at.y - 2} h18 M${at.x - 46} ${at.y + 4} h12`} fill="none" stroke={OUTLINE} strokeWidth={1.6} strokeLinecap="round" />
         </g>
@@ -143,11 +143,11 @@ export function OfficeScene({
       </defs>
 
       {/* the room */}
-      <rect x={ROOM.x} y={ROOM.y} width={ROOM.width} height={ROOM.height} rx="30" fill="var(--stage-raised, #263058)" />
+      <rect x={ROOM.x} y={ROOM.y} width={ROOM.width} height={ROOM.height} rx="30" fill="var(--stage, #1b1e4b)" />
       <rect x={ROOM.x} y={ROOM.y} width={ROOM.width} height={ROOM.height} rx="30" fill="url(#office-tiles)" />
-      <rect x={ROOM.x} y={ROOM.y} width={ROOM.width} height={ROOM.height} rx="30" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="5" />
+      <rect x={ROOM.x} y={ROOM.y} width={ROOM.width} height={ROOM.height} rx="30" fill="none" stroke="var(--stage-rule, #3a3f86)" strokeWidth="5" />
       {/* doorway in the left wall, beside the front desk */}
-      <rect x={ROOM.x - 5} y={ROOM.y + 470} width="10" height="66" fill="var(--stage, #1b2340)" />
+      <rect x={ROOM.x - 5} y={ROOM.y + 470} width="10" height="66" fill="var(--stage-deep, #121438)" />
       {/* back wall: whiteboard, cabinet, plants */}
       <g>
         <rect x="372" y="34" width="250" height="62" rx="8" fill="#fffaf0" {...LINE} />
@@ -215,7 +215,7 @@ export function OfficeScene({
             <Seated person={person} at={{ x: at.x - 12, y: at.y + 6 }} />
             <rect className="desk-top" x={at.x - 58} y={at.y - 8} width={104} height={30} rx={9} fill="#e6c08d" {...LINE} />
             <rect x={at.x - 2} y={at.y - 18} width={36} height={23} rx={5} fill="#414b63" {...LINE} strokeWidth={2.6} />
-            <circle cx={at.x + 16} cy={at.y - 6.5} r={2.8} fill="#f4a62a" />
+            <circle cx={at.x + 16} cy={at.y - 6.5} r={2.8} fill="var(--accent, #ff5a3c)" />
             <NameTag at={at} text={firstName(person, person.id)} dy={50} />
             <rect className="hit" x={at.x - 90} y={at.y - 110} width={180} height={178} rx={18} />
           </g>

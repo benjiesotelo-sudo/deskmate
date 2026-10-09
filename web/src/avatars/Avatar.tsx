@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { OUTLINE, phase, resolveLook, shade, type AvatarLook, type AvatarTokens } from "./tokens.ts";
+import { OUTLINE, phase, resolveLook, shade, type AvatarLook, type AvatarTokens } from "./tokens";
 import "./avatars.css";
 
 // Chibi office avatars: big head, small body, bold outline, flat colours.
@@ -177,7 +177,7 @@ function Accessory({ look }: { look: AvatarLook }) {
     case "lanyard":
       return (
         <g>
-          <path d="M27 50.4 L32 62 L37 50.4" fill="none" stroke="#f4a62a" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round" />
+          <path d="M27 50.4 L32 62 L37 50.4" fill="none" stroke="var(--accent, #ff5a3c)" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round" />
           <rect x="28.4" y="61" width="7.2" height="8.2" rx="1.3" fill="#fffaf0" {...THIN} />
           <path d="M30.2 64 H33.8 M30.2 66.4 H33" fill="none" stroke={OUTLINE} strokeWidth="1" strokeLinecap="round" />
         </g>
@@ -214,7 +214,7 @@ function Accessory({ look }: { look: AvatarLook }) {
           <path d="M11 55.5 q-2 -2.5 0 -5 M14.6 55.5 q-2 -2.5 0 -5" fill="none" stroke="#fffaf0" strokeWidth="1.2" strokeLinecap="round" opacity="0.8" />
           <path d="M17.6 60.6 h2.6 a2.6 2.6 0 0 1 0 5.4 h-2.6" fill="none" {...THIN} />
           <rect x="8.4" y="58" width="9.6" height="10" rx="2" fill="#fffaf0" {...THIN} />
-          <path d="M8.4 61.4 H18" fill="none" stroke="#f4a62a" strokeWidth="1.6" />
+          <path d="M8.4 61.4 H18" fill="none" stroke="var(--accent, #ff5a3c)" strokeWidth="1.6" />
           <circle cx="12.6" cy="68.4" r="2.9" fill={look.skin} {...THIN} />
         </g>
       );

@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import { AvatarHead } from "../avatars/Avatar.tsx";
-import { PersonChip } from "../avatars/PersonChip.tsx";
-import { participants, personById, useOffice } from "./api.ts";
-import { FlowIcon, PlayIcon } from "./icons.tsx";
-import { links } from "./links.ts";
-import { PageNote } from "./ProcessPage.tsx";
-import "../styles/tokens.css";
+import { AvatarHead } from "../avatars/Avatar";
+import { PersonChip } from "../avatars/PersonChip";
+import { participants, personById, useOffice } from "./api";
+import { FlowIcon, PlayIcon } from "./icons";
+import { links } from "./links";
+import { PageNote } from "./ProcessPage";
 import "./processes.css";
 
 // /processes: every documented process of the office, one card each.
@@ -16,7 +15,7 @@ export function ProcessListPage() {
   const { people, processes } = office.data;
 
   return (
-    <main className="dm-page">
+    <div className="dm-page">
       <nav className="dm-crumbs" aria-label="Breadcrumb">
         <Link to={links.office()}>Office</Link>
       </nav>
@@ -68,6 +67,6 @@ export function ProcessListPage() {
           );
         })}
       </ul>
-    </main>
+    </div>
   );
 }

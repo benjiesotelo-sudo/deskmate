@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { PersonChip } from "../avatars/PersonChip.tsx";
-import { participants, personById, useOffice, type OfficeData } from "./api.ts";
-import { ArrowIcon, BackIcon, DocIcon, NextIcon, PauseIcon, PlayIcon, RestartIcon } from "./icons.tsx";
-import { readingOrder } from "./layout.ts";
-import { links } from "./links.ts";
-import { usePlayback, type Playback } from "./playback.ts";
-import { ProcessEditor } from "./ProcessEditor.tsx";
-import { ProcessFlow } from "./ProcessFlow.tsx";
-import { KIND_LABEL, type OfficeProcess, type ProcessStep } from "./types.ts";
-import "../styles/tokens.css";
+import { PersonChip } from "../avatars/PersonChip";
+import { participants, personById, useOffice, type OfficeData } from "./api";
+import { ArrowIcon, BackIcon, DocIcon, NextIcon, PauseIcon, PlayIcon, RestartIcon } from "./icons";
+import { readingOrder } from "./layout";
+import { links } from "./links";
+import { usePlayback, type Playback } from "./playback";
+import { ProcessEditor } from "./ProcessEditor";
+import { ProcessFlow } from "./ProcessFlow";
+import { KIND_LABEL, type OfficeProcess, type ProcessStep } from "./types";
 import "./processes.css";
 
 type View = "flow" | "steps" | "edit";
@@ -38,11 +37,11 @@ export function ProcessPage() {
 
 export function PageNote({ children, tone }: { children: React.ReactNode; tone?: "error" }) {
   return (
-    <main className="dm-page">
+    <div className="dm-page">
       <p className={`dm-note${tone === "error" ? " dm-note-error" : ""}`} role={tone === "error" ? "alert" : "status"}>
         {children}
       </p>
-    </main>
+    </div>
   );
 }
 
@@ -101,7 +100,7 @@ function ProcessView({ process, data }: { process: OfficeProcess; data: OfficeDa
   const isLocal = data.localEdits.includes(process.id);
 
   return (
-    <main className="dm-page">
+    <div className="dm-page">
       <nav className="dm-crumbs" aria-label="Breadcrumb">
         <Link to={links.office()}>Office</Link>
         <span aria-hidden="true">/</span>
@@ -199,7 +198,7 @@ function ProcessView({ process, data }: { process: OfficeProcess; data: OfficeDa
           <ProcessEditor process={process} data={data} />
         </section>
       ) : null}
-    </main>
+    </div>
   );
 }
 
@@ -294,13 +293,13 @@ function StepPanel({
 
 export function ArtifactLink({ docId, data }: { docId: string; data: OfficeData }) {
   return (
-    <a className="artifact-link" href={links.document(docId)}>
+    <Link className="artifact-link" to={links.document(docId)}>
       <DocIcon size={16} />
       <span>
         <span className="dm-eyebrow">Document</span>
         <span className="artifact-name">{data.documentTitles[docId] ?? docId}</span>
       </span>
-    </a>
+    </Link>
   );
 }
 

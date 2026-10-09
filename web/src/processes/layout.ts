@@ -1,13 +1,13 @@
-import { findStart } from "./playback.ts";
-import type { OfficeProcess, ProcessStep, StepKind } from "./types.ts";
+import { findStart } from "./playback";
+import type { OfficeProcess, ProcessStep, StepKind } from "./types";
 
 // Automatic left-to-right layout for a process flow.
 // Columns come from the longest path from the start (loops back are ignored for ranking),
 // and rows stack branches under the main line. No dependencies, deterministic, fast.
 
-export const COLUMN_PITCH = 164;
+export const COLUMN_PITCH = 158;
 export const ROW_PITCH = 176;
-export const PAD_X = 40;
+export const PAD_X = 28;
 export const PAD_TOP = 62; // room for a decision caption above the first row
 export const PAD_BOTTOM = 62;
 export const TASK_W = 132;

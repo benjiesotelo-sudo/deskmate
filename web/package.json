@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.standalone.config.ts",
-    "build": "tsc -p tsconfig.standalone.json --noEmit && vite build --config vite.standalone.config.ts",
-    "typecheck": "tsc -p tsconfig.standalone.json --noEmit",
-    "test": "tsx --test 'src/**/*.test.ts'",
+    "build": "tsc -p tsconfig.standalone.json && vite build --config vite.standalone.config.ts",
+    "typecheck": "tsc -p tsconfig.standalone.json && tsc -p tests",
+    "test": "tsx --test tests/*.test.ts",
     "sync:sample": "node standalone/sync-sample.mjs"
   },
   "dependencies": {

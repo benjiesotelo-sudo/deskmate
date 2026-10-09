@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Avatar } from "../avatars/Avatar.tsx";
-import { Tams } from "../avatars/Tams.tsx";
-import { processesOf, type OfficeData } from "../processes/api.ts";
-import { ChatIcon, CloseIcon, DocIcon, HouseIcon, PlayIcon } from "../processes/icons.tsx";
-import { links } from "../processes/links.ts";
-import type { Person } from "../processes/types.ts";
+import { Avatar } from "../avatars/Avatar";
+import { Tams } from "../avatars/Tams";
+import { processesOf, type OfficeData } from "../processes/api";
+import { ChatIcon, CloseIcon, DocIcon, HouseIcon, PlayIcon } from "../processes/icons";
+import { links } from "../processes/links";
+import type { Person } from "../processes/types";
 
 const DOCS_SHOWN = 5;
 
@@ -62,7 +62,7 @@ export function PersonCard({ person, data, onClose }: Props) {
             {shown.map((docId) => (
               <li key={docId}>
                 <DocIcon size={14} />
-                <a href={links.document(docId)}>{data.documentTitles[docId] ?? docId}</a>
+                <Link to={links.document(docId)}>{data.documentTitles[docId] ?? docId}</Link>
               </li>
             ))}
           </ul>
@@ -97,9 +97,9 @@ export function PersonCard({ person, data, onClose }: Props) {
         </ul>
       )}
 
-      <a className="dm-button ask-tams" href={links.tams(question)}>
+      <Link className="dm-button ask-tams" to={links.tams(question)}>
         <ChatIcon size={16} /> Ask Tams about this
-      </a>
+      </Link>
     </section>
   );
 }
@@ -127,9 +127,9 @@ export function TamsCard({ data, onClose }: { data: OfficeData; onClose: () => v
         Ask Tams how to do something here. When the task is one of the {data.processes.length} documented{" "}
         {data.processes.length === 1 ? "process" : "processes"}, he answers with its steps and can play it in this office.
       </p>
-      <a className="dm-button dm-button-accent ask-tams" href={links.tams("")}>
+      <Link className="dm-button dm-button-accent ask-tams" to="/tams">
         <ChatIcon size={16} /> Ask Tams
-      </a>
+      </Link>
     </section>
   );
 }

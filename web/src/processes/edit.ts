@@ -1,4 +1,4 @@
-import type { OfficeProcess } from "./types.ts";
+import type { OfficeProcess } from "./types";
 
 // The rules of the process editor, kept apart from the screen so they can be tested.
 

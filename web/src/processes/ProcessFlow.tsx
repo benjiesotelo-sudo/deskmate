@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { AvatarHead } from "../avatars/Avatar.tsx";
-import { personById } from "./api.ts";
-import { DocIcon } from "./icons.tsx";
-import { CIRCLE_R, DIAMOND_R, layoutProcess, TASK_H, TASK_W, type FlowEdge } from "./layout.ts";
-import type { OfficeProcess, Person } from "./types.ts";
+import { AvatarHead } from "../avatars/Avatar";
+import { personById } from "./api";
+import { DocIcon } from "./icons";
+import { CIRCLE_R, DIAMOND_R, layoutProcess, TASK_H, TASK_W, type FlowEdge } from "./layout";
+import type { OfficeProcess, Person } from "./types";
 
 type Props = {
   process: OfficeProcess;
@@ -15,7 +15,7 @@ type Props = {
   walked?: ReadonlySet<string>; // edge ids "from>to" already travelled in this run
 };
 
-const MIN_SCALE = 0.8;
+const MIN_SCALE = 0.76;
 
 function arrowHead(edge: FlowEdge): string {
   const { x, y, direction } = edge.tip;

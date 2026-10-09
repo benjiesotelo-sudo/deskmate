@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { resolveLook } from "../avatars/tokens.ts";
-import type { Person } from "../processes/types.ts";
-import { HOME, placeDesks, placeHome, ROOM, whereabouts } from "./layout.ts";
+import { resolveLook } from "../src/avatars/tokens";
+import type { Person } from "../src/processes/types";
+import { HOME, placeDesks, placeHome, ROOM, whereabouts } from "../src/office/layout";
 
-const people = JSON.parse(readFileSync(fileURLToPath(new URL("../../../data/sample-office/people.json", import.meta.url)), "utf8")) as Person[];
+const people = JSON.parse(readFileSync(fileURLToPath(new URL("../../data/sample-office/people.json", import.meta.url)), "utf8")) as Person[];
 
 const person = (id: string, x: number, y: number, location: Person["location"] = "office"): Person => ({
   id,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { OfficeProcess, ProcessStep } from "./types.ts";
+import type { OfficeProcess, ProcessStep } from "./types";
 
 export const STEP_MS = 2500;
 

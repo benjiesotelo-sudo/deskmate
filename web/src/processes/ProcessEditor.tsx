@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { discardLocalEdits, saveProcess, type OfficeData } from "./api.ts";
-import { finaliseIds, NEW_PREFIX, problemsOf } from "./edit.ts";
-import { PlusIcon, TrashIcon } from "./icons.tsx";
-import { ProcessFlow } from "./ProcessFlow.tsx";
-import { KIND_LABEL, STEP_KINDS, type OfficeProcess, type ProcessStep, type StepKind } from "./types.ts";
+import { discardLocalEdits, saveProcess, type OfficeData } from "./api";
+import { finaliseIds, NEW_PREFIX, problemsOf } from "./edit";
+import { PlusIcon, TrashIcon } from "./icons";
+import { ProcessFlow } from "./ProcessFlow";
+import { KIND_LABEL, STEP_KINDS, type OfficeProcess, type ProcessStep, type StepKind } from "./types";
 
 // A plain editor for the steps of one process: add, edit, link, delete, save.
 // It saves the whole process through PUT /api/processes/:id (see saveProcess).

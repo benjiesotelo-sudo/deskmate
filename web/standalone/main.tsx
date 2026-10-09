@@ -4,35 +4,39 @@
 import "@fontsource-variable/inter";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, Link, Navigate, Outlet, RouterProvider } from "react-router-dom";
-import { officeRoutes } from "../src/processes/routes.tsx";
+import { createBrowserRouter, Link, Navigate, Outlet, RouterProvider, useLocation } from "react-router-dom";
+import { officeRoutes } from "../src/processes/routes";
 import "../src/styles/tokens.css";
 import "./standalone.css";
 
 function Shell() {
   return (
-    <>
-      <header className="standalone-bar">
+    <div className="standalone-shell">
+      <aside className="standalone-side">
         <strong>Deskmate</strong>
-        <nav>
-          <Link to="/office">Office</Link>
-          <Link to="/processes">Processes</Link>
-        </nav>
-        <span>office module, standalone</span>
-      </header>
-      <Outlet />
-    </>
+        <small>office module, standalone</small>
+        <Link to="/office">The office</Link>
+        <Link to="/processes">Processes</Link>
+      </aside>
+      <main className="standalone-main">
+        <Outlet />
+      </main>
+    </div>
   );
 }
 
 function ElsewhereInTheApp() {
+  const { pathname, search } = useLocation();
   return (
-    <main style={{ padding: 32 }}>
-      <p>This page belongs to another part of Deskmate (Tams' chat or the filing cabinet) and is not part of the standalone office module.</p>
+    <div className="standalone-elsewhere">
+      <p>
+        <code>{pathname + search}</code> belongs to another part of Deskmate (Tams' chat or the filing cabinet), which is not part of the standalone office
+        module.
+      </p>
       <p>
         <Link to="/office">Back to the office</Link>
       </p>
-    </main>
+    </div>
   );
 }
 

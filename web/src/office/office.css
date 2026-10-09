@@ -3,14 +3,18 @@
 
 .office-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) clamp(264px, 24cqw, 330px);
+  gap: 16px;
   align-items: start;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
+/* The whole stage, caption included, always fits in the window: no scrolling mid-demo. */
 .office-stage {
   aspect-ratio: 1280 / 720;
+  width: min(100%, calc((100vh - 132px) * 1280 / 720));
+  min-width: min(100%, 520px);
+  margin-inline: auto;
   container-type: inline-size;
   scroll-margin-top: 16px;
 }
@@ -86,8 +90,8 @@
 }
 
 .name-tag rect {
-  fill: rgba(13, 17, 36, 0.78);
-  stroke: rgba(255, 255, 255, 0.2);
+  fill: color-mix(in srgb, var(--dm-stage-deep) 86%, transparent);
+  stroke: var(--dm-stage-line);
   stroke-width: 1.5;
   transition: fill 200ms ease;
 }
@@ -118,11 +122,11 @@
 
 .is-selected .name-tag text,
 .is-active .name-tag text {
-  fill: var(--dm-accent-ink);
+  fill: var(--dm-ink);
 }
 
 .away-card rect {
-  fill: rgba(27, 35, 64, 0.85);
+  fill: var(--dm-stage);
   stroke: var(--dm-outline);
   stroke-width: 2.4;
 }
@@ -135,8 +139,8 @@
 }
 
 .home-strip {
-  fill: rgba(255, 255, 255, 0.045);
-  stroke: rgba(255, 255, 255, 0.3);
+  fill: color-mix(in srgb, var(--dm-stage) 55%, transparent);
+  stroke: var(--dm-stage-line);
   stroke-width: 3;
   stroke-dasharray: 11 10;
 }
@@ -161,14 +165,14 @@
 }
 
 .home-room {
-  fill: #303b69;
+  fill: var(--dm-stage-raised);
   stroke: var(--dm-outline);
   stroke-width: 3;
 }
 
 .home-roof {
   fill: none;
-  stroke: #ef6f55;
+  stroke: #ffb199;
   stroke-width: 8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -179,7 +183,7 @@
 }
 
 .front-sign text {
-  fill: var(--dm-accent);
+  fill: var(--dm-stage-ink);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -325,7 +329,7 @@
 }
 
 .caption-eyebrow span {
-  color: #a86a00;
+  color: var(--dm-accent-ink);
 }
 
 .dm-page .caption-title {
@@ -370,7 +374,7 @@
   flex: none;
   width: 1.1em;
   height: 1.1em;
-  color: #a86a00;
+  color: var(--dm-accent-ink);
 }
 
 .dm-page .caption-example {
@@ -395,8 +399,7 @@
   width: 2.3em;
   height: 2.3em;
   border-radius: 0.7em;
-  background: var(--dm-paper);
-  border-color: var(--dm-line);
+  border-color: var(--dm-ink);
   color: var(--dm-ink);
   flex: none;
 }
@@ -468,7 +471,7 @@
   border-radius: 999px;
   border: 0.14em solid var(--dm-outline);
   background: var(--dm-accent);
-  color: var(--dm-accent-ink);
+  color: var(--dm-ink);
   font-size: 0.98em;
   font-weight: 650;
   text-decoration: none;
@@ -507,7 +510,7 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #2f9160;
+  background: var(--dm-ok);
   flex: none;
 }
 
@@ -569,7 +572,7 @@
   height: 104px;
   padding-bottom: 2px;
   border-radius: 18px;
-  background: var(--dm-stage);
+  background: var(--dm-stage-raised);
   overflow: hidden;
 }
 
@@ -596,7 +599,7 @@
 
 .presence-home {
   background: var(--dm-accent-soft);
-  color: #6a4700;
+  color: var(--dm-accent-ink);
 }
 
 .person-email {
@@ -632,7 +635,7 @@
 .own-docs svg {
   flex: none;
   margin-top: 3px;
-  color: #a86a00;
+  color: var(--dm-accent-ink);
 }
 
 .part-list li {
@@ -652,8 +655,8 @@
   height: 30px;
   flex: none;
   background: var(--dm-accent);
-  border-color: transparent;
-  color: var(--dm-accent-ink);
+  border-color: var(--dm-accent);
+  color: var(--dm-ink);
 }
 
 .ask-tams {
@@ -713,6 +716,12 @@
 
 .how-table tbody tr.is-playing {
   background: var(--dm-accent-soft);
+}
+
+.how-table a,
+.own-list a,
+.part-list a {
+  font-weight: 600;
 }
 
 .how-table .how-num {
@@ -814,7 +823,7 @@
   margin-left: 14px;
 }
 
-@media (max-width: 1020px) {
+@container dm-page (max-width: 940px) {
   .office-grid {
     grid-template-columns: minmax(0, 1fr);
   }

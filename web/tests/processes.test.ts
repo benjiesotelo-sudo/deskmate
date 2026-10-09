@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { finaliseIds, problemsOf } from "./edit.ts";
-import { layoutProcess, readingOrder } from "./layout.ts";
-import { buildRun } from "./playback.ts";
-import type { OfficeProcess, Person, ProcessStep } from "./types.ts";
+import { finaliseIds, problemsOf } from "../src/processes/edit";
+import { layoutProcess, readingOrder } from "../src/processes/layout";
+import { buildRun } from "../src/processes/playback";
+import type { OfficeProcess, Person, ProcessStep } from "../src/processes/types";
 
 const read = <T>(relative: string): T => JSON.parse(readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8")) as T;
-const processes = read<OfficeProcess[]>("../../../data/sample-office/processes.json");
-const people = read<Person[]>("../../../data/sample-office/people.json");
+const processes = read<OfficeProcess[]>("../../data/sample-office/processes.json");
+const people = read<Person[]>("../../data/sample-office/people.json");
 
 const step = (id: string, kind: ProcessStep["kind"], next: string[]): ProcessStep => ({
   id,
@@ -42,7 +42,7 @@ test("sample office: every process is well formed and points at real people", ()
 
 test("sample office: the copies served to the browser match the source of truth", () => {
   for (const name of ["people.json", "processes.json"]) {
-    assert.deepEqual(read(`../../public/sample/${name}`), read(`../../../data/sample-office/${name}`), name);
+    assert.deepEqual(read(`../public/sample/${name}`), read(`../../data/sample-office/${name}`), name);
   }
 });
 

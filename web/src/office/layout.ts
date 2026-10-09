@@ -1,4 +1,4 @@
-import type { Person } from "../processes/types.ts";
+import type { Person } from "../processes/types";
 
 // Where things sit in the office scene. One SVG, 1280 x 720 user units: the room on the left,
 // the "working from home" strip on the right, so the playback dot can travel between them.

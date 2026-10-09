@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { OfficeProcess, Person } from "./types.ts";
+import type { OfficeProcess, Person } from "./types";
 
 // Loads people and processes from deskmate-core's API, and falls back to the bundled sample
 // office (/sample/*.json) only when the API is not there at all. A refused or failing API
@@ -110,13 +110,10 @@ export function loadOffice(force = false): Promise<void> {
         withFallback<OfficeProcess>("/api/processes", "/sample/processes.json", "processes"),
         loadDocumentTitles(),
       ]);
-      let list = processes.list;
-      let localEdits: string[] = [];
-      if (processes.source === "sample") {
-        const local = readLocal();
-        localEdits = list.filter((process) => local[process.id]).map((process) => process.id);
-        list = list.map((process) => local[process.id] ?? process);
-      }
+      // Edits that could not reach the server are kept in this browser and laid over what loads.
+      const local = readLocal();
+      const localEdits = processes.list.filter((process) => local[process.id]).map((process) => process.id);
+      const list = processes.list.map((process) => local[process.id] ?? process);
       setState({
         status: "ready",
         data: {
@@ -136,8 +133,8 @@ export function loadOffice(force = false): Promise<void> {
 
 export type SaveResult = { where: "server" | "browser" };
 
-// PUT /api/processes/:id. If the API is not there (the sample fallback is in use), the edit is
-// kept in this browser instead and the caller is told so.
+// PUT /api/processes/:id. If the server has no such route or cannot be reached, the edit is
+// kept in this browser instead and the caller is told so, so the screen can say it plainly.
 export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
   if (state.status !== "ready") throw new Error("The office has not loaded yet.");
   const data = state.data;
@@ -151,10 +148,8 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
   } catch {
     response = null;
   }
+  // 404 or 405 on the PUT means this server has no save route for processes (yet).
   const absent = response === null || response.status === 404 || response.status === 405;
-  if (absent && data.source.processes === "api") {
-    throw new Error("The server did not accept the save. Your changes are still on this screen.");
-  }
   if (!absent && response && !response.ok) {
     let reason = `The server answered ${response.status}.`;
     try {
@@ -172,6 +167,12 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
     where = "browser";
     writeLocal({ ...readLocal(), [process.id]: process });
   } else if (response) {
+    // The server has it now, so any copy kept in this browser is out of date.
+    const local = readLocal();
+    if (local[process.id]) {
+      delete local[process.id];
+      writeLocal(local);
+    }
     try {
       const body = (await response.json()) as Partial<OfficeProcess> | null;
       if (body && body.id === process.id && Array.isArray(body.steps)) saved = body as OfficeProcess;
@@ -179,7 +180,8 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
       // an empty answer is fine: what was sent is what was saved
     }
   }
-  const localEdits = where === "browser" ? Array.from(new Set([...data.localEdits, process.id])) : data.localEdits;
+  const localEdits =
+    where === "browser" ? Array.from(new Set([...data.localEdits, process.id])) : data.localEdits.filter((id) => id !== process.id);
   setState({
     status: "ready",
     data: { ...data, processes: data.processes.map((item) => (item.id === saved.id ? saved : item)), localEdits },
@@ -187,7 +189,7 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
   return { where };
 }
 
-// Throw away edits kept in this browser and show the shipped sample again.
+// Throw away edits kept in this browser and show what the office has on record again.
 export async function discardLocalEdits(processId: string): Promise<void> {
   const local = readLocal();
   delete local[processId];

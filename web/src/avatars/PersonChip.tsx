@@ -1,5 +1,5 @@
-import { AvatarHead } from "./Avatar.tsx";
-import type { AvatarTokens } from "./tokens.ts";
+import { AvatarHead } from "./Avatar";
+import type { AvatarTokens } from "./tokens";
 
 type Props = {
   person?: { id: string; name: string; role?: string; avatar?: Partial<AvatarTokens> };

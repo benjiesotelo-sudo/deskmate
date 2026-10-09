@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { PersonChip } from "../avatars/PersonChip.tsx";
-import { participants, personById, useOffice, type OfficeData } from "../processes/api.ts";
-import { BackIcon, CloseIcon, DocIcon, FlowIcon, HouseIcon, NextIcon, PauseIcon, PlayIcon, RestartIcon } from "../processes/icons.tsx";
-import { links } from "../processes/links.ts";
-import { usePlayback, type Playback } from "../processes/playback.ts";
-import { PageNote } from "../processes/ProcessPage.tsx";
-import type { OfficeProcess, Person } from "../processes/types.ts";
-import { HowItWorks } from "./HowItWorks.tsx";
-import { OfficeScene, type SceneSelection } from "./OfficeScene.tsx";
-import { PersonCard, TamsCard } from "./PersonCard.tsx";
-import "../styles/tokens.css";
+import { PersonChip } from "../avatars/PersonChip";
+import { participants, personById, useOffice, type OfficeData } from "../processes/api";
+import { BackIcon, CloseIcon, DocIcon, FlowIcon, HouseIcon, NextIcon, PauseIcon, PlayIcon, RestartIcon } from "../processes/icons";
+import { links } from "../processes/links";
+import { usePlayback, type Playback } from "../processes/playback";
+import { PageNote } from "../processes/ProcessPage";
+import type { OfficeProcess, Person } from "../processes/types";
+import { HowItWorks } from "./HowItWorks";
+import { OfficeScene, type SceneSelection } from "./OfficeScene";
+import { PersonCard, TamsCard } from "./PersonCard";
 import "../processes/processes.css";
 import "./office.css";
 
@@ -68,7 +67,7 @@ function OfficeView({ data }: { data: OfficeData }) {
   const atHome = people.filter((person) => person.location === "home");
 
   return (
-    <main className="dm-page office-page">
+    <div className="dm-page office-page">
       <header className="proc-head">
         <div className="proc-head-text">
           <h1>The office</h1>
@@ -143,7 +142,7 @@ function OfficeView({ data }: { data: OfficeData }) {
       </div>
 
       <HowItWorks data={data} playingId={process && step ? process.id : null} activeActor={step?.actor ?? null} onPickPerson={(id) => setSelection({ kind: "person", id })} />
-    </main>
+    </div>
   );
 }
 
@@ -201,9 +200,9 @@ function StepCaption({ process, playback, data, onClose }: { process: OfficeProc
         <PersonChip person={actor} fallbackId={step.actor} size={26} tone="stage" />
         {actor ? <span className="caption-role">{actor.location === "home" ? `${actor.role}, working from home` : actor.role}</span> : null}
         {step.artifact ? (
-          <a className="caption-doc" href={links.document(step.artifact)}>
+          <Link className="caption-doc" to={links.document(step.artifact)}>
             <DocIcon size={14} /> {data.documentTitles[step.artifact] ?? step.artifact}
-          </a>
+          </Link>
         ) : null}
       </div>
       {step.example ? <p className="caption-example">{step.example}</p> : null}
