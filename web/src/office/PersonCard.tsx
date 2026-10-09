@@ -124,8 +124,8 @@ export function TamsCard({ data, onClose }: { data: OfficeData; onClose: () => v
         </div>
       </div>
       <p>
-        Ask Tams how to do something here. When the task is one of the {data.processes.length} documented{" "}
-        {data.processes.length === 1 ? "process" : "processes"}, he answers with its steps and can play it in this office.
+        Ask Tams how to do something here. He answers from this office's own documents and its {data.processes.length} documented{" "}
+        {data.processes.length === 1 ? "process" : "processes"}.
       </p>
       <Link className="dm-button dm-button-accent ask-tams" to="/tams">
         <ChatIcon size={16} /> Ask Tams

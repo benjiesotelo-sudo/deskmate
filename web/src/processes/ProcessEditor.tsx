@@ -115,7 +115,10 @@ export function ProcessEditor({ process, data }: { process: OfficeProcess; data:
           ? { tone: "ok", text: "Saved. Everyone in the office now sees this version." }
           : {
               tone: "local",
-              text: "Saved in this browser only. The Deskmate server is not answering, so nobody else sees this change yet.",
+              text:
+                result.why === "unreachable"
+                  ? "Saved in this browser only. The Deskmate server is not answering, so nobody else sees this change yet."
+                  : "Saved in this browser only. This Deskmate server does not store process edits yet, so nobody else sees this change.",
             },
       );
     } catch (error) {

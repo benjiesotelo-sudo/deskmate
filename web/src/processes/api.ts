@@ -131,7 +131,8 @@ export function loadOffice(force = false): Promise<void> {
   return loading;
 }
 
-export type SaveResult = { where: "server" | "browser" };
+// "no-route": the server answered but has no save route for processes. "unreachable": no answer at all.
+export type SaveResult = { where: "server" } | { where: "browser"; why: "no-route" | "unreachable" };
 
 // PUT /api/processes/:id. If the server has no such route or cannot be reached, the edit is
 // kept in this browser instead and the caller is told so, so the screen can say it plainly.
@@ -163,6 +164,7 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
 
   let saved = process;
   let where: SaveResult["where"] = "server";
+  const why = response === null ? "unreachable" : "no-route";
   if (absent) {
     where = "browser";
     writeLocal({ ...readLocal(), [process.id]: process });
@@ -186,7 +188,7 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
     status: "ready",
     data: { ...data, processes: data.processes.map((item) => (item.id === saved.id ? saved : item)), localEdits },
   });
-  return { where };
+  return where === "server" ? { where } : { where, why };
 }
 
 // Throw away edits kept in this browser and show what the office has on record again.
