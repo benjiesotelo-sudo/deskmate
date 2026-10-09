@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import express, { Router, type Request, type Response } from "express";
+import express, { Router, type NextFunction, type Request, type Response } from "express";
 import { CHAT_MODEL, EMBED_MODEL, OFFICE_DIR } from "./config.ts";
 import { currentPerson, endSession, requireAdmin, requireAuth, signIn, startSession } from "./auth.ts";
 import { db, getMeta } from "./db.ts";
@@ -415,4 +415,18 @@ api.get("/api/admin/storage", requireAdmin, (_req, res) => {
 
 api.use("/api", (_req, res) => {
   res.status(404).json({ error: "No such endpoint." });
+});
+
+// Errors come back in the same shape as everything else: { error: "a sentence a person can read" }.
+api.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) return next(error);
+  const type = (error as { type?: string } | null)?.type;
+  if (type === "entity.parse.failed") {
+    res.status(400).json({ error: "That request was not valid JSON." });
+  } else if (type === "entity.too.large") {
+    res.status(413).json({ error: "That is too large to send in one go. The limit is 30 MB." });
+  } else {
+    console.error(error);
+    res.status(500).json({ error: "Deskmate hit a problem on this machine. Try again." });
+  }
 });
