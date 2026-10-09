@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { discardLocalEdits, saveProcess, type OfficeData } from "./api";
+import { useSession } from "../lib/session";
+import { discardLocalEdits, personById, saveProcess, type OfficeData } from "./api";
 import { finaliseIds, NEW_PREFIX, problemsOf } from "./edit";
 import { PlusIcon, TrashIcon } from "./icons";
 import { ProcessFlow } from "./ProcessFlow";
@@ -7,6 +8,7 @@ import { KIND_LABEL, STEP_KINDS, type OfficeProcess, type ProcessStep, type Step
 
 // A plain editor for the steps of one process: add, edit, link, delete, save.
 // It saves the whole process through PUT /api/processes/:id (see saveProcess).
+// The process owner and office admins can save; everyone else can read and try changes.
 
 type Status = { tone: "ok" | "local" | "error"; text: string } | null;
 
@@ -32,6 +34,9 @@ export function ProcessEditor({ process, data }: { process: OfficeProcess; data:
     [data.documentTitles],
   );
   const isLocal = data.localEdits.includes(process.id);
+  // The server enforces the same rule: an office admin or the process owner.
+  const { me } = useSession();
+  const canSave = me?.access === "admin" || me?.id === process.owner;
 
   const update = (stepId: string, change: Partial<ProcessStep>) => {
     setStatus(null);
@@ -103,7 +108,7 @@ export function ProcessEditor({ process, data }: { process: OfficeProcess; data:
   };
 
   const save = async () => {
-    if (errors.length > 0) return;
+    if (errors.length > 0 || !canSave) return;
     setSaving(true);
     setStatus(null);
     try {
@@ -112,14 +117,8 @@ export function ProcessEditor({ process, data }: { process: OfficeProcess; data:
       setDraft(structuredClone(final));
       setStatus(
         result.where === "server"
-          ? { tone: "ok", text: "Saved. Everyone in the office now sees this version." }
-          : {
-              tone: "local",
-              text:
-                result.why === "unreachable"
-                  ? "Saved in this browser only. The Deskmate server is not answering, so nobody else sees this change yet."
-                  : "Saved in this browser only. This Deskmate server does not store process edits yet, so nobody else sees this change.",
-            },
+          ? { tone: "ok", text: "Saved. Everyone in the office now sees this version, and Tams answers from it." }
+          : { tone: "local", text: "Saved in this browser only. Deskmate is not answering, so nobody else sees this change yet. Save again once it is back." },
       );
     } catch (error) {
       setStatus({ tone: "error", text: error instanceof Error ? error.message : "The save did not go through." });
@@ -149,7 +148,7 @@ export function ProcessEditor({ process, data }: { process: OfficeProcess; data:
 
       <div className="editor-bar">
         <div className="editor-bar-text">
-          <strong>{dirty ? "Unsaved changes" : "Nothing to save"}</strong>
+          <strong>{!canSave ? "You can try changes here, but not save them" : dirty ? "Unsaved changes" : "Nothing to save"}</strong>
           <span className="dm-muted">The picture above redraws as you edit. Play follows the first link of a step that has not been walked yet.</span>
         </div>
         <div className="editor-bar-actions">
@@ -161,12 +160,17 @@ export function ProcessEditor({ process, data }: { process: OfficeProcess; data:
           <button type="button" className="dm-button" onClick={() => setDraft(structuredClone(process))} disabled={!dirty || saving}>
             Undo changes
           </button>
-          <button type="button" className="dm-button dm-button-accent" onClick={save} disabled={!dirty || saving || errors.length > 0}>
+          <button type="button" className="dm-button dm-button-accent" onClick={save} disabled={!canSave || !dirty || saving || errors.length > 0}>
             {saving ? "Saving..." : "Save process"}
           </button>
         </div>
       </div>
 
+      {!canSave ? (
+        <p className="dm-note" role="note">
+          Only {personById(data.people, process.owner)?.name ?? "the process owner"} or an office admin can save changes to this process.
+        </p>
+      ) : null}
       {status ? (
         <p className={`dm-note${status.tone === "error" ? " dm-note-error" : status.tone === "local" ? " dm-note-warn" : " dm-note-ok"}`} role="status">
           {status.text}

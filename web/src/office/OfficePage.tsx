@@ -81,10 +81,6 @@ function OfficeView({ data }: { data: OfficeData }) {
         </Link>
       </header>
 
-      {data.source.people === "sample" || data.source.processes === "sample" ? (
-        <p className="dm-note">The Deskmate server is not answering, so this is the sample office that ships with the app.</p>
-      ) : null}
-
       <div className="office-grid">
         <div className="dm-stage office-stage" ref={stage}>
           <OfficeScene

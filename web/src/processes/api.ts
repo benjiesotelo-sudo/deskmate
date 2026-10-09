@@ -1,17 +1,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { OfficeProcess, Person } from "./types";
 
-// Loads people and processes from deskmate-core's API, and falls back to the bundled sample
-// office (/sample/*.json) only when the API is not there at all. A refused or failing API
-// is reported as an error, never papered over with sample data.
-
-export type Source = "api" | "sample";
+// Loads people, processes and document titles from the Deskmate API and keeps them in one
+// small store shared by the office view and the process pages.
 
 export type OfficeData = {
   people: Person[];
   processes: OfficeProcess[];
   documentTitles: Record<string, string>;
-  source: { people: Source; processes: Source };
   localEdits: string[]; // process ids whose edits live in this browser only
 };
 
@@ -20,53 +16,34 @@ export type OfficeState =
   | { status: "ready"; data: OfficeData; error?: undefined }
   | { status: "error"; data?: undefined; error: string };
 
-class ApiAbsent extends Error {}
-
-async function getJson(url: string): Promise<unknown> {
+async function getList<T>(url: string): Promise<T[]> {
   let response: Response;
   try {
-    response = await fetch(url, { headers: { Accept: "application/json" } });
+    response = await fetch(url, { headers: { Accept: "application/json" }, credentials: "same-origin" });
   } catch {
-    throw new ApiAbsent(`${url} is not reachable`);
+    throw new Error("Deskmate is not responding. Check that the app is still running on this machine.");
   }
-  if (response.status === 404 || response.status === 405) throw new ApiAbsent(`${url} is not served`);
-  if (response.status === 401 || response.status === 403) throw new Error("Sign in to see the office.");
-  if (!response.ok) throw new Error(`${url} answered ${response.status}`);
-  // A dev server answers unknown paths with the app's HTML page: that is "no API", not data.
-  if (!(response.headers.get("content-type") ?? "").includes("json")) throw new ApiAbsent(`${url} is not JSON`);
-  return response.json();
-}
-
-function asList<T>(value: unknown, key: string): T[] {
-  if (Array.isArray(value)) return value as T[];
-  const wrapped = (value as Record<string, unknown> | null)?.[key];
-  if (Array.isArray(wrapped)) return wrapped as T[];
-  throw new Error(`Expected a list of ${key}`);
-}
-
-async function withFallback<T>(apiUrl: string, sampleUrl: string, key: string): Promise<{ list: T[]; source: Source }> {
-  try {
-    return { list: asList<T>(await getJson(apiUrl), key), source: "api" };
-  } catch (error) {
-    if (!(error instanceof ApiAbsent)) throw error;
-    return { list: asList<T>(await getJson(sampleUrl), key), source: "sample" };
+  if (response.status === 401) {
+    // The same signal the rest of the app uses to go back to the sign-in page.
+    window.dispatchEvent(new Event("deskmate:signed-out"));
+    throw new Error("Sign in to see the office.");
   }
+  if (!response.ok) throw new Error(`${url} answered ${response.status}.`);
+  const value: unknown = await response.json();
+  if (!Array.isArray(value)) throw new Error(`${url} did not answer with a list.`);
+  return value as T[];
 }
 
 // Document titles are a nicety for labels; ids are shown when they cannot be loaded.
 async function loadDocumentTitles(): Promise<Record<string, string>> {
   try {
-    const { list } = await withFallback<{ id?: string; title?: string; name?: string; version?: number; status?: string }>(
-      "/api/documents",
-      "/sample/documents.json",
-      "documents",
-    );
+    const list = await getList<{ id?: string; title?: string; version?: number; status?: string }>("/api/documents");
     const titles: Record<string, string> = {};
     for (const doc of list) {
       if (!doc.id) continue;
       // Two versions of one document share a title, so the version is part of the label.
       const notes = [doc.version ? `v${doc.version}` : "", doc.status === "superseded" ? "superseded" : ""].filter(Boolean);
-      titles[doc.id] = `${doc.title ?? doc.name ?? doc.id}${notes.length > 0 ? ` (${notes.join(", ")})` : ""}`;
+      titles[doc.id] = `${doc.title ?? doc.id}${notes.length > 0 ? ` (${notes.join(", ")})` : ""}`;
     }
     return titles;
   } catch {
@@ -94,6 +71,7 @@ function writeLocal(edits: Record<string, OfficeProcess>) {
 
 let state: OfficeState = { status: "loading" };
 let loading: Promise<void> | null = null;
+let latest = 0;
 const listeners = new Set<() => void>();
 
 function setState(next: OfficeState) {
@@ -101,76 +79,75 @@ function setState(next: OfficeState) {
   for (const listener of listeners) listener();
 }
 
+// Loads the office. A reload that brings back exactly what is already on screen changes
+// nothing, so a process that is playing is never interrupted by a background refresh.
 export function loadOffice(force = false): Promise<void> {
   if (loading && !force) return loading;
+  const turn = (latest += 1);
   loading = (async () => {
     try {
       const [people, processes, documentTitles] = await Promise.all([
-        withFallback<Person>("/api/people", "/sample/people.json", "people"),
-        withFallback<OfficeProcess>("/api/processes", "/sample/processes.json", "processes"),
+        getList<Person>("/api/people"),
+        getList<OfficeProcess>("/api/processes"),
         loadDocumentTitles(),
       ]);
+      if (turn !== latest) return; // a newer load is on its way
       // Edits that could not reach the server are kept in this browser and laid over what loads.
       const local = readLocal();
-      const localEdits = processes.list.filter((process) => local[process.id]).map((process) => process.id);
-      const list = processes.list.map((process) => local[process.id] ?? process);
-      setState({
-        status: "ready",
-        data: {
-          people: people.list,
-          processes: list,
-          documentTitles,
-          source: { people: people.source, processes: processes.source },
-          localEdits,
-        },
-      });
+      const data: OfficeData = {
+        people,
+        processes: processes.map((process) => local[process.id] ?? process),
+        documentTitles,
+        localEdits: processes.filter((process) => local[process.id]).map((process) => process.id),
+      };
+      if (state.status === "ready" && JSON.stringify(state.data) === JSON.stringify(data)) return;
+      setState({ status: "ready", data });
     } catch (error) {
+      if (turn !== latest) return;
+      // Keep showing what is already loaded if a background refresh fails.
+      if (state.status === "ready") return;
       setState({ status: "error", error: error instanceof Error ? error.message : "The office could not be loaded." });
     }
   })();
   return loading;
 }
 
-// "no-route": the server answered but has no save route for processes. "unreachable": no answer at all.
-export type SaveResult = { where: "server" } | { where: "browser"; why: "no-route" | "unreachable" };
+export type SaveResult = { where: "server" } | { where: "browser" };
 
-// PUT /api/processes/:id. If the server has no such route or cannot be reached, the edit is
-// kept in this browser instead and the caller is told so, so the screen can say it plainly.
+// PUT /api/processes/:id. The server checks the process, stores it and re-reads it for Tams.
+// Only when the server cannot be reached at all is the edit kept in this browser instead,
+// and the caller is told so, so the screen can say it plainly.
 export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
   if (state.status !== "ready") throw new Error("The office has not loaded yet.");
-  const data = state.data;
   let response: Response | null = null;
   try {
     response = await fetch(`/api/processes/${encodeURIComponent(process.id)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify(process),
     });
   } catch {
     response = null;
   }
-  // 404 or 405 on the PUT means this server has no save route for processes (yet).
-  const absent = response === null || response.status === 404 || response.status === 405;
-  if (!absent && response && !response.ok) {
+  if (response && !response.ok) {
     let reason = `The server answered ${response.status}.`;
     try {
-      const body = (await response.json()) as { error?: string; message?: string };
-      reason = body.error ?? body.message ?? reason;
+      const body = (await response.json()) as { error?: string };
+      reason = body.error ?? reason;
     } catch {
       // keep the status text
     }
+    if (response.status === 401) window.dispatchEvent(new Event("deskmate:signed-out"));
     throw new Error(reason);
   }
 
   let saved = process;
-  let where: SaveResult["where"] = "server";
-  const why = response === null ? "unreachable" : "no-route";
-  if (absent) {
-    where = "browser";
-    writeLocal({ ...readLocal(), [process.id]: process });
-  } else if (response) {
+  const local = readLocal();
+  if (!response) {
+    writeLocal({ ...local, [process.id]: process });
+  } else {
     // The server has it now, so any copy kept in this browser is out of date.
-    const local = readLocal();
     if (local[process.id]) {
       delete local[process.id];
       writeLocal(local);
@@ -182,13 +159,14 @@ export async function saveProcess(process: OfficeProcess): Promise<SaveResult> {
       // an empty answer is fine: what was sent is what was saved
     }
   }
-  const localEdits =
-    where === "browser" ? Array.from(new Set([...data.localEdits, process.id])) : data.localEdits.filter((id) => id !== process.id);
+  // Read the store again: a background refresh may have landed while the save was in flight.
+  const data = state.data;
+  const localEdits = response ? data.localEdits.filter((id) => id !== process.id) : Array.from(new Set([...data.localEdits, process.id]));
   setState({
     status: "ready",
     data: { ...data, processes: data.processes.map((item) => (item.id === saved.id ? saved : item)), localEdits },
   });
-  return where === "server" ? { where } : { where, why };
+  return { where: response ? "server" : "browser" };
 }
 
 // Throw away edits kept in this browser and show what the office has on record again.
@@ -206,8 +184,9 @@ function subscribe(listener: () => void) {
 
 export function useOffice(): OfficeState {
   const snapshot = useSyncExternalStore(subscribe, () => state);
+  // Each screen that opens asks again, so a document filed or handed over a minute ago shows up.
   useEffect(() => {
-    void loadOffice();
+    void loadOffice(true);
   }, []);
   return snapshot;
 }

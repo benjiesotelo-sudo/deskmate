@@ -40,12 +40,6 @@ test("sample office: every process is well formed and points at real people", ()
   }
 });
 
-test("sample office: the copies served to the browser match the source of truth", () => {
-  for (const name of ["people.json", "processes.json"]) {
-    assert.deepEqual(read(`../public/sample/${name}`), read(`../../data/sample-office/${name}`), name);
-  }
-});
-
 test("sample office: every process plays from its start to an end and draws without overlap", () => {
   for (const process of processes) {
     const run = buildRun(process);
