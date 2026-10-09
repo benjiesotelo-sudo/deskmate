@@ -13,3 +13,7 @@ data/index/
 npm-debug.log*
 .vite/
 coverage/
+data/office/
+*.sqlite-wal
+*.sqlite-shm
+web/dist/
