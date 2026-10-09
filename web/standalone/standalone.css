@@ -1,0 +1,80 @@
+/* STANDALONE SCAFFOLD styles. They copy just enough of deskmate-core's shell (a 248px side bar
+   and a "stage" main surface) for the module to be seen the way it will sit in the real app. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--stage);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01", "tnum";
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+a {
+  color: inherit;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+.standalone-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100%;
+}
+.standalone-side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 16px;
+  background: var(--stage-deep);
+  border-right: 1px solid var(--stage-rule);
+  color: var(--on-stage);
+}
+.standalone-side strong {
+  font-size: 18px;
+}
+.standalone-side small {
+  color: var(--on-stage-soft);
+  margin-bottom: 16px;
+}
+.standalone-side a {
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+.standalone-side a:hover {
+  background: rgba(244, 241, 255, 0.1);
+}
+.standalone-main {
+  min-width: 0;
+  background: var(--stage);
+  color: var(--on-stage);
+}
+.standalone-elsewhere {
+  padding: 48px;
+  max-width: 60ch;
+  display: grid;
+  gap: 12px;
+}
