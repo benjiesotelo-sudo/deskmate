@@ -78,6 +78,13 @@ type OfficeProcess = {
 The seed file is `data/sample-office/processes.json`.
 The four seeded ids are `file-course-material`, `release-quiz`, `accreditation-check` and `staff-handover`.
 
+`PUT /api/processes/:id` saves a whole process from the editor.
+Send the full `OfficeProcess`; the answer is the process as it was stored.
+An admin can save any process. Staff can save the processes they own. Only an admin can change `owner`.
+The `id` cannot change, and every `actor`, `owner`, `artifact` and `next` entry must point at a person, document or step that exists.
+A process needs at least one step, exactly one `start`, and a title on every step.
+The process is written to `processes.json` in the working copy (`data/office/`) and re-indexed, so Tams answers from the new version.
+
 ## Documents
 
 `GET /api/documents?course=&chapter=&kind=&status=&owner=&scope=`
@@ -183,8 +190,8 @@ When `processId` is present, link to `/office?play=<processId>`.
 
 ## Web routes
 
-- `/office` and `/processes/:id` are reserved for the office module.
-  They are registered in `web/src/App.tsx` and render `web/src/pages/ComingSoon.tsx` until the module replaces them.
-- `web/src/office/` and `web/src/processes/` are left empty for that module.
+- `/office`, `/office?play=<processId>`, `/processes` and `/processes/:id` belong to the office module in `web/src/office/` and `web/src/processes/`.
+  They are registered in `web/src/App.tsx`.
+- `/tams?q=<question>` opens Tams' chat with the question typed and ready to send.
 - Stage screens get the deep background from the shell: add the route prefix to `STAGE_PATHS` in `web/src/components/Shell.tsx`.
 - Shared pieces: tokens in `web/src/styles/tokens.css`, the mascot in `web/src/components/Tams.tsx`, API types and `api()` in `web/src/lib/api.ts`.
