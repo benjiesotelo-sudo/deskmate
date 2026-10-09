@@ -7,12 +7,13 @@ import { db, getMeta } from "./db.ts";
 import { getDocument, insertDocument, listDocuments, setDocumentPath, updateDocument, type DocPatch } from "./documents.ts";
 import { extractText, TEXT_EXTENSIONS } from "./extract.ts";
 import { adviseFiling, canonicalPath } from "./filing.ts";
-import { courses, office, officePath, peopleFile, processes } from "./office.ts";
+import { courses, office, officePath, peopleFile, processes, writeProcess } from "./office.ts";
+import { checkProcess } from "./processes.ts";
 import { computeReadiness } from "./readiness.ts";
 import { writeDocumentsFile } from "./seed.ts";
 import { answer, type Mode, type Turn } from "./tams/chat.ts";
 import { cloudStatus } from "./tams/cloud.ts";
-import { indexDocument, indexSummary, isBuilding, rebuildIndex } from "./tams/indexer.ts";
+import { indexDocument, indexProcess, indexSummary, isBuilding, rebuildIndex } from "./tams/indexer.ts";
 import { ollamaState } from "./tams/ollama.ts";
 import { KINDS, STATUSES, type DocRecord, type Kind, type Person, type Status } from "./types.ts";
 
@@ -90,6 +91,28 @@ api.get("/api/processes/:id", (req, res) => {
     return;
   }
   res.json(found);
+});
+
+// Saves a whole process from the editor into the working copy, then re-reads it for Tams.
+api.put("/api/processes/:id", json, async (req, res) => {
+  const existing = processes().find((p) => p.id === req.params.id);
+  if (!existing) {
+    res.status(404).json({ error: "No process with that id." });
+    return;
+  }
+  const checked = checkProcess(req.body, {
+    existing,
+    person: me(res),
+    personIds: new Set(peopleFile().map((p) => p.id)),
+    documentIds: new Set(listDocuments().map((d) => d.id)),
+  });
+  if ("error" in checked) {
+    res.status(checked.status ?? 400).json({ error: checked.error });
+    return;
+  }
+  writeProcess(checked.process);
+  await indexProcess(checked.process.id);
+  res.json(checked.process);
 });
 
 api.get("/api/documents", (req, res) => {

@@ -22,6 +22,15 @@ export const peopleFile = () => readJson<Person[]>("people.json");
 export const courses = () => readJson<Course[]>("courses.json");
 export const processes = () => readJson<OfficeProcess[]>("processes.json");
 
+// Replace one process in the working copy. Written to a temporary file first, so a crash
+// halfway through never leaves a half-written processes.json behind.
+export function writeProcess(process: OfficeProcess) {
+  const next = processes().map((p) => (p.id === process.id ? process : p));
+  const file = path.join(OFFICE_DIR, "processes.json");
+  fs.writeFileSync(`${file}.tmp`, JSON.stringify(next, null, 2) + "\n");
+  fs.renameSync(`${file}.tmp`, file);
+}
+
 // Resolve a document path inside the office folder, refusing anything that escapes it.
 export function officePath(rel: string): string {
   const abs = path.resolve(OFFICE_DIR, rel);

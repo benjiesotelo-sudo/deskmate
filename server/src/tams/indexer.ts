@@ -88,6 +88,18 @@ export async function indexDocument(id: string): Promise<void> {
   }
 }
 
+// Re-index one process after its steps are edited, so Tams answers from the new version.
+export async function indexProcess(id: string): Promise<void> {
+  const process = processes().find((p) => p.id === id);
+  if (!process) return;
+  writeChunks("process", process.id, process.name, chunkProcess(process, peopleFile()));
+  try {
+    await embedPending();
+  } catch {
+    // Left without embeddings. Keyword search still finds it, and the next rebuild embeds it.
+  }
+}
+
 // Fill in embeddings that are missing, for example when Ollama was off during seeding.
 export async function completeEmbeddings(): Promise<number> {
   if (building) return 0;
