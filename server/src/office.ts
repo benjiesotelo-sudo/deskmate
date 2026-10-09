@@ -1,0 +1,30 @@
+import fs from "node:fs";
+import path from "node:path";
+import { OFFICE_DIR, SAMPLE_OFFICE_DIR } from "./config.ts";
+import type { Course, OfficeProcess, Person } from "./types.ts";
+
+// The app never edits data/sample-office. It works on a copy in data/office,
+// so the repo stays clean and "reset the demo" is just a fresh copy.
+export function ensureOfficeCopy(reset = false) {
+  if (reset) fs.rmSync(OFFICE_DIR, { recursive: true, force: true });
+  if (!fs.existsSync(path.join(OFFICE_DIR, "documents.json"))) {
+    fs.mkdirSync(OFFICE_DIR, { recursive: true });
+    fs.cpSync(SAMPLE_OFFICE_DIR, OFFICE_DIR, { recursive: true });
+  }
+}
+
+function readJson<T>(name: string): T {
+  return JSON.parse(fs.readFileSync(path.join(OFFICE_DIR, name), "utf8")) as T;
+}
+
+export const office = () => readJson<{ name: string; term: string; note?: string }>("office.json");
+export const peopleFile = () => readJson<Person[]>("people.json");
+export const courses = () => readJson<Course[]>("courses.json");
+export const processes = () => readJson<OfficeProcess[]>("processes.json");
+
+// Resolve a document path inside the office folder, refusing anything that escapes it.
+export function officePath(rel: string): string {
+  const abs = path.resolve(OFFICE_DIR, rel);
+  if (abs !== OFFICE_DIR && !abs.startsWith(OFFICE_DIR + path.sep)) throw new Error("Path leaves the office folder");
+  return abs;
+}
