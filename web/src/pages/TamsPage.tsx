@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Markdown } from "../components/Markdown";
 import { TamsMark } from "../components/Tams";
 import { api, type TamsStatus } from "../lib/api";
@@ -40,6 +40,26 @@ export function TamsPage() {
   const [busy, setBusy] = useState(false);
   const abort = useRef<AbortController | null>(null);
   const end = useRef<HTMLDivElement | null>(null);
+  const box = useRef<HTMLTextAreaElement | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  // /tams?q=... arrives with the question typed and ready to send, for example from a person's
+  // card in the office. The question then leaves the address, so a reload does not type it again.
+  const asked = params.get("q");
+  useEffect(() => {
+    if (asked === null) return;
+    if (asked.trim()) setDraft(asked.trim().slice(0, 4000));
+    setParams({}, { replace: true });
+    box.current?.focus();
+  }, [asked, setParams]);
+
+  // The box grows with a long question instead of hiding most of it.
+  useEffect(() => {
+    const area = box.current;
+    if (!area) return;
+    area.style.height = "auto";
+    area.style.height = `${area.scrollHeight + 3}px`;
+  }, [draft]);
 
   useEffect(() => {
     let live = true;
@@ -197,6 +217,7 @@ export function TamsPage() {
       <footer className="tams-foot">
         <form className="ask" onSubmit={submit}>
           <textarea
+            ref={box}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={onKey}
