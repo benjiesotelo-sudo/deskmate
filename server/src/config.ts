@@ -36,11 +36,20 @@ export const SAMPLE_OFFICE_DIR = path.join(ROOT, "data", "sample-office");
 export const OFFICE_DIR = env("DESKMATE_OFFICE_DIR") ? path.resolve(env("DESKMATE_OFFICE_DIR")!) : path.join(ROOT, "data", "office");
 const dbSetting = env("DESKMATE_DB");
 export const DB_PATH = dbSetting === ":memory:" ? dbSetting : dbSetting ? path.resolve(dbSetting) : path.join(ROOT, "data", "deskmate.sqlite");
+// Files pulled from the connected Google Drive folder. Never committed.
+export const MIRROR_DIR = env("DESKMATE_MIRROR_DIR") ? path.resolve(env("DESKMATE_MIRROR_DIR")!) : path.join(ROOT, "data", "mirror");
 export const WEB_DIST = path.join(ROOT, "web", "dist");
 
 export const OLLAMA_HOST = (env("OLLAMA_HOST") ?? "http://127.0.0.1:11434").replace(/\/$/, "");
 export const CHAT_MODEL = env("DESKMATE_CHAT_MODEL") ?? "qwen3:4b";
 export const EMBED_MODEL = env("DESKMATE_EMBED_MODEL") ?? "nomic-embed-text";
 export const CLOUD_MODEL = "claude-sonnet-5-5";
+
+// Google endpoints. The overrides exist so the tests can stand in a local server for Google.
+export const GOOGLE_AUTH_URL = env("DESKMATE_GOOGLE_AUTH_URL") ?? "https://accounts.google.com/o/oauth2/v2/auth";
+export const GOOGLE_TOKEN_URL = env("DESKMATE_GOOGLE_TOKEN_URL") ?? "https://oauth2.googleapis.com/token";
+export const GOOGLE_API_URL = (env("DESKMATE_GOOGLE_API_URL") ?? "https://www.googleapis.com").replace(/\/$/, "");
+export const GOOGLE_SCOPES = ["openid", "email", "profile", "https://www.googleapis.com/auth/drive"];
+export const GOOGLE_REDIRECT_URI = env("GOOGLE_REDIRECT_URI") ?? `http://localhost:${PORT}/auth/google/callback`;
 
 export const DEMO_PASSWORD = "deskmate";

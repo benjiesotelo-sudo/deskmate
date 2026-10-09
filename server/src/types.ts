@@ -58,4 +58,7 @@ export type DocRecord = {
   status: Status;
   path: string;
   updatedAt: string;
+  // Set only on documents that came from the connected Drive folder.
+  mirrored?: boolean;
+  driveFileId?: string | null;
 };

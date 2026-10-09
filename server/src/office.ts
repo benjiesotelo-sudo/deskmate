@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { OFFICE_DIR, SAMPLE_OFFICE_DIR } from "./config.ts";
+import { MIRROR_DIR, OFFICE_DIR, SAMPLE_OFFICE_DIR } from "./config.ts";
 import type { Course, OfficeProcess, Person } from "./types.ts";
 
 // The app never edits data/sample-office. It works on a copy in data/office,
@@ -23,8 +23,18 @@ export const courses = () => readJson<Course[]>("courses.json");
 export const processes = () => readJson<OfficeProcess[]>("processes.json");
 
 // Resolve a document path inside the office folder, refusing anything that escapes it.
+// Mirrored documents carry a path that starts with "mirror/" and live in the Drive mirror folder.
 export function officePath(rel: string): string {
+  if (rel.startsWith("mirror/")) {
+    const mirrored = path.resolve(MIRROR_DIR, rel.slice("mirror/".length));
+    if (!mirrored.startsWith(MIRROR_DIR + path.sep)) throw new Error("Path leaves the mirror folder");
+    return mirrored;
+  }
   const abs = path.resolve(OFFICE_DIR, rel);
   if (abs !== OFFICE_DIR && !abs.startsWith(OFFICE_DIR + path.sep)) throw new Error("Path leaves the office folder");
   return abs;
+}
+
+export function savePeople(people: Person[]) {
+  fs.writeFileSync(path.join(OFFICE_DIR, "people.json"), JSON.stringify(people, null, 2) + "\n");
 }

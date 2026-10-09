@@ -4,7 +4,7 @@ import express, { Router, type Request, type Response } from "express";
 import { CHAT_MODEL, EMBED_MODEL, OFFICE_DIR } from "./config.ts";
 import { currentPerson, endSession, requireAdmin, requireAuth, signIn, startSession } from "./auth.ts";
 import { db, getMeta } from "./db.ts";
-import { getDocument, insertDocument, listDocuments, setDocumentPath, updateDocument, type DocPatch } from "./documents.ts";
+import { getDocument, insertDocument, listDocuments, setDocumentPath, supersedeOthers, updateDocument, type DocPatch } from "./documents.ts";
 import { extractText, TEXT_EXTENSIONS } from "./extract.ts";
 import { adviseFiling, canonicalPath } from "./filing.ts";
 import { courses, office, officePath, peopleFile, processes } from "./office.ts";
@@ -192,16 +192,6 @@ function readPatch(body: Record<string, unknown>, person: Person): { patch: DocP
   return { patch };
 }
 
-// One current document per course, chapter and kind. Marking a new one current
-// retires the old one to "superseded" in the same step.
-const ONE_CURRENT: Kind[] = ["syllabus", "deck", "materials", "quiz", "book"];
-function supersedeOthers(doc: DocRecord): string[] {
-  if (doc.status !== "current" || !ONE_CURRENT.includes(doc.kind)) return [];
-  const others = listDocuments({ course: doc.course, chapter: doc.chapter, kind: doc.kind, status: "current" }).filter((d) => d.id !== doc.id);
-  for (const other of others) updateDocument(other.id, { status: "superseded" });
-  return others.map((d) => d.id);
-}
-
 api.patch("/api/documents/:id", json, (req, res) => {
   const id = String(req.params.id);
   const doc = getDocument(id);
@@ -222,7 +212,8 @@ api.patch("/api/documents/:id", json, (req, res) => {
   let updated = updateDocument(id, parsed.patch)!;
   // Keep the file where the record says it belongs: if the course, chapter,
   // kind or version changed, the file moves to its new folder and name.
-  const target = canonicalPath(updated);
+  // A mirrored file stays where Drive has it; its record travels back to Drive as a sidecar on the next sync.
+  const target = updated.mirrored ? updated.path : canonicalPath(updated);
   if (target !== updated.path && fs.existsSync(officePath(updated.path)) && !fs.existsSync(officePath(target))) {
     fs.mkdirSync(path.dirname(officePath(target)), { recursive: true });
     fs.renameSync(officePath(updated.path), officePath(target));

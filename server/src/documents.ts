@@ -13,9 +13,11 @@ type Row = {
   status: Status;
   path: string;
   updated_at: string;
+  mirrored: number;
+  drive_file_id: string | null;
 };
 
-const COLUMNS = "id, title, kind, course, term, chapter, owner, version, status, path, updated_at";
+const COLUMNS = "id, title, kind, course, term, chapter, owner, version, status, path, updated_at, mirrored, drive_file_id";
 
 function toRecord(r: Row): DocRecord {
   return {
@@ -30,6 +32,7 @@ function toRecord(r: Row): DocRecord {
     status: r.status,
     path: r.path,
     updatedAt: r.updated_at,
+    ...(r.mirrored ? { mirrored: true, driveFileId: r.drive_file_id } : {}),
   };
 }
 
@@ -70,11 +73,27 @@ export function getDocument(id: string): (DocRecord & { body: string }) | undefi
 
 export function insertDocument(doc: DocRecord, body: string) {
   db.prepare(
-    `INSERT INTO documents (${COLUMNS}, body) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO documents (${COLUMNS}, body) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET title = excluded.title, kind = excluded.kind, course = excluded.course, term = excluded.term,
        chapter = excluded.chapter, owner = excluded.owner, version = excluded.version, status = excluded.status,
-       path = excluded.path, updated_at = excluded.updated_at, body = excluded.body`,
-  ).run(doc.id, doc.title, doc.kind, doc.course, doc.term, doc.chapter, doc.owner, doc.version, doc.status, doc.path, doc.updatedAt, body);
+       path = excluded.path, updated_at = excluded.updated_at, mirrored = excluded.mirrored,
+       drive_file_id = excluded.drive_file_id, body = excluded.body`,
+  ).run(
+    doc.id,
+    doc.title,
+    doc.kind,
+    doc.course,
+    doc.term,
+    doc.chapter,
+    doc.owner,
+    doc.version,
+    doc.status,
+    doc.path,
+    doc.updatedAt,
+    doc.mirrored ? 1 : 0,
+    doc.driveFileId ?? null,
+    body,
+  );
 }
 
 export type DocPatch = Partial<Pick<DocRecord, "title" | "kind" | "course" | "term" | "chapter" | "owner" | "version" | "status">>;
@@ -96,4 +115,20 @@ export function setDocumentPath(id: string, newPath: string): DocRecord | undefi
   if (!doc) return undefined;
   const { body: _body, ...record } = doc;
   return record;
+}
+
+// A mirrored file changed in Drive: keep the record, replace its text and where the file sits.
+export function setDocumentBody(id: string, body: string, newPath: string) {
+  db.prepare("UPDATE documents SET body = ?, path = ?, updated_at = ? WHERE id = ?").run(body, newPath, new Date().toISOString(), id);
+}
+
+// One current document per course, chapter and kind. Marking a new one current
+// retires the old one to "superseded" in the same step.
+const ONE_CURRENT: Kind[] = ["syllabus", "deck", "materials", "quiz", "book"];
+export const hasOneCurrent = (kind: Kind) => ONE_CURRENT.includes(kind);
+export function supersedeOthers(doc: DocRecord): string[] {
+  if (doc.status !== "current" || !ONE_CURRENT.includes(doc.kind)) return [];
+  const others = listDocuments({ course: doc.course, chapter: doc.chapter, kind: doc.kind, status: "current" }).filter((d) => d.id !== doc.id);
+  for (const other of others) updateDocument(other.id, { status: "superseded" });
+  return others.map((d) => d.id);
 }
