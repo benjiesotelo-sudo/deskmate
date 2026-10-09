@@ -8,7 +8,8 @@ import { askTams, type TamsFrame, type TamsMode } from "../lib/tams";
 
 type Message = { role: "user" | "assistant"; content: string; frame?: TamsFrame; streaming?: boolean; failed?: boolean };
 
-const STORE = "deskmate.tams";
+// Chats are kept per person for the browser session, so one account never sees another's questions.
+const storeKey = (personId: string) => `deskmate.tams.${personId}`;
 const SUGGESTIONS = [
   "How do I release a quiz?",
   "A faculty member sent me a revised deck. How do I file it?",
@@ -16,9 +17,9 @@ const SUGGESTIONS = [
   "How is BUS101 graded?",
 ];
 
-function loadStored(): { messages: Message[]; mode: TamsMode } {
+function loadStored(personId: string): { messages: Message[]; mode: TamsMode } {
   try {
-    const raw = sessionStorage.getItem(STORE);
+    const raw = sessionStorage.getItem(storeKey(personId));
     if (raw) {
       const parsed = JSON.parse(raw) as { messages: Message[]; mode: TamsMode };
       return { messages: parsed.messages.map((m) => ({ ...m, streaming: false })), mode: parsed.mode };
@@ -31,8 +32,9 @@ function loadStored(): { messages: Message[]; mode: TamsMode } {
 
 export function TamsPage() {
   const { me } = useSession();
-  const [messages, setMessages] = useState<Message[]>(() => loadStored().messages);
-  const [mode, setMode] = useState<TamsMode>(() => loadStored().mode);
+  const personId = me?.id ?? "nobody";
+  const [messages, setMessages] = useState<Message[]>(() => loadStored(personId).messages);
+  const [mode, setMode] = useState<TamsMode>(() => loadStored(personId).mode);
   const [status, setStatus] = useState<TamsStatus | null>(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -59,9 +61,9 @@ export function TamsPage() {
   }, [status, mode]);
 
   useEffect(() => {
-    sessionStorage.setItem(STORE, JSON.stringify({ messages, mode }));
+    sessionStorage.setItem(storeKey(personId), JSON.stringify({ messages, mode }));
     end.current?.scrollIntoView({ block: "end" });
-  }, [messages, mode]);
+  }, [messages, mode, personId]);
 
   async function send(question: string) {
     const text = question.trim();

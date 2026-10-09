@@ -5,10 +5,11 @@ import { useLoad } from "../lib/useLoad";
 
 type GoogleStatus = { configured: boolean; ready: boolean; message: string };
 
-function Line({ ok, children }: { ok: boolean; children: React.ReactNode }) {
+// Optional parts that are simply switched off read as "Off", not as a fault.
+function Line({ ok, optional, children }: { ok: boolean; optional?: boolean; children: React.ReactNode }) {
   return (
     <div className="row" style={{ flexWrap: "nowrap", alignItems: "flex-start" }}>
-      <span className={`pill ${ok ? "current" : "missing"}`}>{ok ? "Ready" : "Not ready"}</span>
+      <span className={`pill ${ok ? "current" : optional ? "superseded" : "missing"}`}>{ok ? "Ready" : optional ? "Off" : "Not ready"}</span>
       <span>{children}</span>
     </div>
   );
@@ -101,10 +102,10 @@ export function SettingsPage() {
 
         <section className="card stack">
           <h2 className="h3">Cloud mode (optional)</h2>
-          <Line ok={tams.cloud.configured}>
+          <Line ok={tams.cloud.configured} optional>
             {tams.cloud.configured ? "An Anthropic API key is set" : "No Anthropic API key is set, so Tams stays fully local"}
           </Line>
-          <Line ok={tams.cloud.online}>{tams.cloud.online ? "The internet is reachable" : tams.cloud.configured ? "The internet is not reachable right now" : "Not checked while cloud mode is off"}</Line>
+          <Line ok={tams.cloud.online} optional={!tams.cloud.configured}>{tams.cloud.online ? "The internet is reachable" : tams.cloud.configured ? "The internet is not reachable right now" : "Not checked while cloud mode is off"}</Line>
           <p className="small muted">
             When both are ready, the chat header offers Cloud (Claude) using <span className="mono">{tams.cloud.model}</span>. In cloud mode the excerpts
             Tams found are sent to Anthropic to write the answer. In local mode nothing leaves this computer.
@@ -113,7 +114,7 @@ export function SettingsPage() {
 
         <section className="card stack">
           <h2 className="h3">Google sign-in and Drive</h2>
-          <Line ok={google.ready}>{google.message}</Line>
+          <Line ok={google.ready} optional>{google.message}</Line>
           <p className="small muted">Username and password sign-in always works, with or without the internet.</p>
           {storage && (
             <dl className="record">
