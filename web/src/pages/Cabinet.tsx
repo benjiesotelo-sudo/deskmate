@@ -116,6 +116,7 @@ export function Cabinet() {
                 <span className="name">{d.title}</span>
                 <span className="ver">
                   v{d.version} - {formatDate(d.updatedAt)}
+                  {d.mirrored ? " - from Drive" : ""}
                 </span>
                 <StatusPill status={d.status} />
               </Link>

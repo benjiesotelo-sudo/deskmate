@@ -53,6 +53,9 @@ export type DocRecord = {
   status: Status;
   path: string;
   updatedAt: string;
+  // Set only on documents that came from the connected Drive folder.
+  mirrored?: boolean;
+  driveFileId?: string | null;
 };
 
 export type DocDetail = DocRecord & { text: string; fileName: string; fileExists: boolean; versions: DocRecord[]; canEdit: boolean };
@@ -107,6 +110,64 @@ export type TamsStatus = {
   };
 };
 
+export type GoogleAccount = { email: string; name: string; driveGranted: boolean; connected: boolean };
+export type GoogleStatus = { configured: boolean; ready: boolean; online: boolean; message: string; account: GoogleAccount | null };
+
+export type DriveJob = {
+  kind: "sync" | "download";
+  phase: "listing" | "downloading" | "records" | "indexing" | "done" | "failed";
+  startedAt: string;
+  finishedAt: string | null;
+  total: number;
+  done: number;
+  bytes: number;
+  current: string | null;
+  filed: number;
+  updated: number;
+  pushed: number;
+  pulled: number;
+  errors: { name: string; message: string }[];
+  offline: boolean;
+  message: string | null;
+};
+
+export type DriveStatus = {
+  configured: boolean;
+  online: boolean;
+  account: GoogleAccount | null;
+  connection: {
+    folderId: string;
+    folderName: string;
+    link: string | null;
+    accountEmail: string;
+    connectedBy: string;
+    connectedAt: string;
+    mirrorFolder: string | null;
+  } | null;
+  canManage: boolean;
+  counts: { files: number; local: number; notLocal: number; changed: number; staysInDrive: number; filed: number; recordsToSend: number };
+  statusLine: string;
+  lastSync: string | null;
+  lastListed: string | null;
+  job: DriveJob | null;
+};
+
+export type DriveFileState = "folder" | "stays" | "local" | "changed" | "remote";
+export type DriveEntry = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  path: string;
+  isFolder: boolean;
+  state: DriveFileState;
+  size: number | null;
+  modifiedTime: string | null;
+  link: string | null;
+  note: string | null;
+  doc: { id: string; title: string; course: string; chapter: number | null; kind: Kind; status: Status; recordPending: boolean } | null;
+};
+export type DriveFolder = { id: string; name: string; modifiedTime: string | null; link: string | null };
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -141,6 +202,10 @@ export function fileLink(slot: { course: string; chapter: number | null; kind: s
   const q = new URLSearchParams({ course: slot.course, kind: slot.kind });
   if (slot.chapter !== null) q.set("chapter", String(slot.chapter));
   return `/cabinet/file?${q}`;
+}
+
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 export function formatDate(iso: string): string {

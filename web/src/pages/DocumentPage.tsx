@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Markdown } from "../components/Markdown";
 import { StatusPill } from "../components/StatusPill";
 import { api, formatDate, KIND_LABEL, KINDS, STATUSES, type Course, type DocDetail, type DocRecord, type Person } from "../lib/api";
@@ -9,7 +9,9 @@ import { useLoad } from "../lib/useLoad";
 export function DocumentPage() {
   const { id = "" } = useParams();
   const { me } = useSession();
-  const [editing, setEditing] = useState(false);
+  // The Drive screen links straight to the record form with ?edit=1.
+  const [params] = useSearchParams();
+  const [editing, setEditing] = useState(params.get("edit") === "1");
   const [saved, setSaved] = useState<string | null>(null);
   const { data, error, reload } = useLoad(
     async () => {
@@ -49,6 +51,7 @@ export function DocumentPage() {
           <div className="row" style={{ marginBottom: "var(--space-2)" }}>
             <StatusPill status={doc.status} />
             <span className="pill plain">Version {doc.version}</span>
+            {doc.mirrored && <span className="pill plain">From Google Drive</span>}
           </div>
           <h1 className="title">{doc.title}</h1>
         </div>
@@ -70,6 +73,12 @@ export function DocumentPage() {
       {doc.status === "superseded" && current && current.id !== doc.id && (
         <p className="notice" style={{ marginBottom: "var(--space-4)" }}>
           This is an older version kept for the record. <Link to={`/documents/${current.id}`}>Open the current one, version {current.version}</Link>.
+        </p>
+      )}
+      {doc.mirrored && (
+        <p className="notice ok" style={{ marginBottom: "var(--space-4)" }}>
+          This file is mirrored from the office's Google Drive folder and kept on this computer. Edit its record here and the next sync writes the
+          record beside the file in Drive.
         </p>
       )}
       {doc.status === "draft" && (
@@ -95,7 +104,7 @@ export function DocumentPage() {
 
         <aside className="stack">
           <div className="card">
-            {editing ? (
+            {editing && doc.canEdit ? (
               <EditRecord
                 doc={doc}
                 courses={courses}

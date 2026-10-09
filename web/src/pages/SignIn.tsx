@@ -11,8 +11,11 @@ const DEMO_ACCOUNTS = [
 ];
 
 const GOOGLE_NOTICE: Record<string, string> = {
-  pending: "Google credentials were found on this machine, but Google sign-in is not switched on in this build yet. Use a username and password for now.",
-  "not-configured": "Google sign-in is not configured yet on this machine. Use a username and password for now.",
+  "not-configured": "Google sign-in is not configured on this machine yet. Use a username and password.",
+  offline: "Google cannot be reached, so this machine looks offline. Username and password sign-in still works.",
+  denied: "Google sign-in was cancelled. Nothing was shared. Try again, or use a username and password.",
+  expired: "That Google sign-in took too long or was started somewhere else. Try again.",
+  failed: "Google sign-in did not complete. Try again, or use a username and password.",
 };
 
 export function SignIn() {

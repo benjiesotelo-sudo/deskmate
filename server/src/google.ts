@@ -150,8 +150,8 @@ async function driveStatus(person: Person) {
   const conn = state.connection;
   return {
     configured,
-    // Checked only when it matters, so the screen answers at once on a machine with no Google at all.
-    online: configured && (conn || account) ? await googleOnline() : false,
+    // Not checked at all on a machine with no Google credentials, so the screen answers at once there.
+    online: configured ? await googleOnline() : false,
     account: account ? { email: account.email, name: account.name, driveGranted: account.driveGranted, connected: account.hasRefreshToken } : null,
     connection: conn
       ? {

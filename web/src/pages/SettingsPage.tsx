@@ -1,9 +1,19 @@
 import { useState } from "react";
-import { api, type TamsStatus } from "../lib/api";
+import { useSearchParams } from "react-router-dom";
+import { DriveMirror } from "../drive/DriveMirror";
+import { api, type GoogleStatus, type TamsStatus } from "../lib/api";
 import { useSession } from "../lib/session";
 import { useLoad } from "../lib/useLoad";
 
-type GoogleStatus = { configured: boolean; ready: boolean; message: string };
+// What came back from a trip to Google, shown once above the Drive mirror.
+const GOOGLE_NOTICE: Record<string, string> = {
+  connected: "Your Google account is connected. Now pick the Drive folder to mirror.",
+  offline: "Google cannot be reached, so this machine looks offline. Try again when the internet is back.",
+  denied: "Connecting Google was cancelled. Nothing was shared.",
+  expired: "That trip to Google took too long. Try again.",
+  failed: "Connecting Google did not complete. Try again.",
+  "not-configured": "Google is not configured on this machine yet.",
+};
 
 // Optional parts that are simply switched off read as "Off", not as a fault.
 function Line({ ok, optional, children }: { ok: boolean; optional?: boolean; children: React.ReactNode }) {
@@ -20,6 +30,7 @@ export function SettingsPage() {
   const isAdmin = me?.access === "admin";
   const [reindexing, setReindexing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [params] = useSearchParams();
   const { data, error, reload } = useLoad(async () => {
     const [tams, google, storage] = await Promise.all([
       api<TamsStatus>("/api/tams/status"),
@@ -115,7 +126,23 @@ export function SettingsPage() {
         <section className="card stack">
           <h2 className="h3">Google sign-in and Drive</h2>
           <Line ok={google.ready} optional>{google.message}</Line>
-          <p className="small muted">Username and password sign-in always works, with or without the internet.</p>
+          {google.ready && (
+            <Line ok={Boolean(google.account?.connected)} optional>
+              {google.account?.connected ? (
+                <>
+                  Your Google account is <strong>{google.account.email}</strong>. "Continue with Google" signs you in as {me?.name}.
+                </>
+              ) : (
+                <>
+                  No Google account is connected to {me?.name} yet. <a href="/auth/google?link=1">Connect one</a>.
+                </>
+              )}
+            </Line>
+          )}
+          <p className="small muted">
+            Username and password sign-in always works, with or without the internet. Google only confirms who you are and lets Deskmate read the Drive
+            folder you choose. The Google token stays in the database on this computer and is never sent to the browser.
+          </p>
           {storage && (
             <dl className="record">
               <dt>Office folder</dt>
@@ -126,6 +153,8 @@ export function SettingsPage() {
           )}
         </section>
       </div>
+
+      <DriveMirror notice={GOOGLE_NOTICE[params.get("google") ?? ""]} />
     </div>
   );
 }

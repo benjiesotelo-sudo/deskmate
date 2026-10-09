@@ -51,6 +51,7 @@ export function CoursePage() {
           <span className="name">{d.title}</span>
           <span className="ver">
             v{d.version} - {name(d.owner)}
+            {d.mirrored ? " - from Drive" : ""}
           </span>
           <StatusPill status={d.status} />
         </Link>

@@ -47,7 +47,7 @@ export async function googleFetch(url: string, init: RequestInit = {}, timeoutMs
 let lastProbe = { at: 0, online: false };
 
 // A quick answer to "is Google reachable right now?", remembered for a few seconds.
-export async function googleOnline(maxAgeMs = 8_000): Promise<boolean> {
+export async function googleOnline(maxAgeMs = 3_000): Promise<boolean> {
   if (Date.now() - lastProbe.at < maxAgeMs) return lastProbe.online;
   try {
     // Any HTTP answer means the network path is there.
