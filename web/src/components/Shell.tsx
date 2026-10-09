@@ -39,6 +39,10 @@ export function Shell() {
             <span className="dot" />
             The office
           </NavLink>
+          <NavLink to="/processes">
+            <span className="dot" />
+            Processes
+          </NavLink>
         </nav>
         <div className="side-foot">
           <div>

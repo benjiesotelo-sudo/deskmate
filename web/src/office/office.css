@@ -1,0 +1,846 @@
+/* The office view. The scene is one SVG; the caption is HTML laid over it and sized in
+   container units so it scales with the stage exactly like the drawing does. */
+
+.office-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(264px, 24cqw, 330px);
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+/* The whole stage, caption included, always fits in the window: no scrolling mid-demo. */
+.office-stage {
+  aspect-ratio: 1280 / 720;
+  width: min(100%, calc((100vh - 132px) * 1280 / 720));
+  min-width: min(100%, 520px);
+  margin-inline: auto;
+  container-type: inline-size;
+  scroll-margin-top: 16px;
+}
+
+.office-scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+  user-select: none;
+}
+
+.office-scene .hit {
+  fill: transparent;
+  stroke: none;
+}
+
+.office-scene .desk,
+.office-scene .tams-desk {
+  cursor: pointer;
+  outline: none;
+  transition: opacity 400ms ease;
+}
+
+.office-scene .desk.is-away {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.office-scene .desk:focus-visible .hit,
+.office-scene .tams-desk:focus-visible .hit {
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-dasharray: 7 6;
+}
+
+.office-scene .desk.is-dim {
+  opacity: 0.38;
+}
+
+.office-scene .desk-top {
+  transition: fill 160ms ease;
+}
+
+.office-scene .desk:hover .desk-top,
+.office-scene .tams-desk:hover .desk-top {
+  fill: #f3d3a6;
+}
+
+.desk-glow {
+  fill: var(--dm-accent);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.is-selected > .desk-glow,
+.is-selected > g > .desk-glow {
+  opacity: 0.16;
+}
+
+/* the desk lights up as the travelling dot arrives */
+.is-active > .desk-glow,
+.is-active > g > .desk-glow {
+  opacity: 0.4;
+  transition: opacity 450ms ease 620ms;
+}
+
+.is-active .desk-top {
+  stroke: var(--dm-accent);
+  stroke-width: 4.5;
+  transition: stroke 300ms ease 620ms;
+}
+
+.name-tag rect {
+  fill: color-mix(in srgb, var(--dm-stage-deep) 86%, transparent);
+  stroke: var(--dm-stage-line);
+  stroke-width: 1.5;
+  transition: fill 200ms ease;
+}
+
+.name-tag text {
+  fill: var(--dm-stage-ink);
+  font-size: 15.5px;
+  font-weight: 650;
+}
+
+.name-tag.is-away rect {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-dasharray: 5 5;
+}
+
+.name-tag.is-away text {
+  fill: var(--dm-stage-ink-soft);
+  font-size: 13.5px;
+  font-weight: 550;
+}
+
+.is-selected .name-tag rect,
+.is-active .name-tag rect {
+  fill: var(--dm-accent);
+  stroke: var(--dm-outline);
+}
+
+.is-selected .name-tag text,
+.is-active .name-tag text {
+  fill: var(--dm-ink);
+}
+
+.away-card rect {
+  fill: var(--dm-stage);
+  stroke: var(--dm-outline);
+  stroke-width: 2.4;
+}
+
+.away-card path {
+  stroke: var(--dm-stage-ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-strip {
+  fill: color-mix(in srgb, var(--dm-stage) 55%, transparent);
+  stroke: var(--dm-stage-line);
+  stroke-width: 3;
+  stroke-dasharray: 11 10;
+}
+
+.home-title path {
+  stroke: var(--dm-accent);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-title text {
+  fill: var(--dm-stage-ink);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.home-title .home-count {
+  fill: var(--dm-stage-ink-soft);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.home-room {
+  fill: var(--dm-stage-raised);
+  stroke: var(--dm-outline);
+  stroke-width: 3;
+}
+
+.home-roof {
+  fill: none;
+  stroke: #ffb199;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.front-sign rect {
+  fill: var(--dm-outline);
+}
+
+.front-sign text {
+  fill: var(--dm-stage-ink);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+/* playback */
+
+.travel-layer {
+  pointer-events: none;
+}
+
+.travel {
+  transition: transform 1100ms cubic-bezier(0.55, 0.05, 0.2, 1);
+}
+
+.travel-dot {
+  fill: var(--dm-accent);
+  stroke: var(--dm-outline);
+  stroke-width: 3.5;
+}
+
+.travel-ring {
+  fill: none;
+  stroke: var(--dm-accent);
+  stroke-width: 4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: travel-ring 1.5s ease-out infinite;
+}
+
+.travel-trail {
+  fill: none;
+  stroke: var(--dm-accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: travel-trail 2300ms ease forwards;
+}
+
+.travel-doc {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: travel-doc 420ms cubic-bezier(0.3, 1.5, 0.5, 1) 1000ms both;
+}
+
+.travel-doc path {
+  fill: #fffaf0;
+  stroke: var(--dm-outline);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+@keyframes travel-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  to {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+
+@keyframes travel-trail {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.95;
+  }
+  48% {
+    stroke-dashoffset: 0;
+    opacity: 0.95;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes travel-doc {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* caption: Tams' speech bubble */
+
+.office-caption {
+  position: absolute;
+  left: 25.6%;
+  bottom: 3.4%;
+  width: 48.4%;
+  font-size: clamp(9px, 1.26cqw, 17px);
+  color: var(--dm-ink);
+}
+
+.caption-body {
+  position: relative;
+  display: grid;
+  gap: 0.42em;
+  padding: 0.85em 1.1em 0.9em;
+  background: var(--dm-raised);
+  border: 0.19em solid var(--dm-outline);
+  border-radius: 1.3em;
+  box-shadow: 0 0.38em 0 rgba(0, 0, 0, 0.3);
+}
+
+.caption-body::before {
+  content: "";
+  position: absolute;
+  left: -0.92em;
+  bottom: 2.4em;
+  width: 1.5em;
+  height: 1.5em;
+  background: var(--dm-raised);
+  border-left: 0.19em solid var(--dm-outline);
+  border-bottom: 0.19em solid var(--dm-outline);
+  transform: rotate(45deg);
+  border-radius: 0 0 0 0.3em;
+}
+
+.caption-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.dm-page .caption-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 1em;
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--dm-ink-soft);
+}
+
+.caption-eyebrow span {
+  color: var(--dm-accent-ink);
+}
+
+.dm-page .caption-title {
+  font-size: 1.5em;
+  font-weight: 750;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  animation: caption-in 360ms ease both;
+}
+
+.caption-who {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3em 0.8em;
+  font-size: 0.98em;
+}
+
+.caption-who .person-chip svg {
+  width: 2em;
+  height: 2em;
+  background: var(--dm-sunk);
+}
+
+.caption-who .person-chip-name {
+  font-size: 1em;
+}
+
+.caption-role {
+  color: var(--dm-ink-soft);
+}
+
+.caption-doc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.caption-doc svg {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--dm-accent-ink);
+}
+
+.dm-page .caption-example {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.98em;
+  line-height: 1.35;
+  color: var(--dm-ink-soft);
+}
+
+.caption-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0.1em;
+}
+
+.office-caption .dm-icon-button {
+  width: 2.3em;
+  height: 2.3em;
+  border-radius: 0.7em;
+  border-color: var(--dm-ink);
+  color: var(--dm-ink);
+  flex: none;
+}
+
+.office-caption .dm-icon-button svg,
+.office-caption .dm-button svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.office-caption .dm-button {
+  font-size: 1em;
+  padding: 0.5em 0.9em;
+  border-radius: 0.7em;
+  gap: 0.45em;
+}
+
+.office-caption .caption-close {
+  width: 1.9em;
+  height: 1.9em;
+  margin: -0.2em -0.3em 0 0;
+}
+
+.caption-pips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.32em;
+  list-style: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+
+.caption-pips li {
+  display: grid;
+}
+
+.caption-pips button {
+  width: 0.78em;
+  height: 0.78em;
+  padding: 0;
+  border-radius: 50%;
+  border: 0.14em solid var(--dm-outline);
+  background: transparent;
+  cursor: pointer;
+}
+
+.caption-pips button.is-done {
+  background: var(--dm-outline);
+}
+
+.caption-pips button.is-now {
+  background: var(--dm-accent);
+  transform: scale(1.35);
+}
+
+.caption-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  margin-top: 0.25em;
+}
+
+.dm-page .caption-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.42em 0.85em;
+  border-radius: 999px;
+  border: 0.14em solid var(--dm-outline);
+  background: var(--dm-accent);
+  color: var(--dm-ink);
+  font-size: 0.98em;
+  font-weight: 650;
+  text-decoration: none;
+  transition: transform 120ms ease;
+}
+
+.caption-chip:hover {
+  transform: translateY(-0.12em);
+}
+
+.caption-chip svg {
+  width: 0.95em;
+  height: 0.95em;
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* side column */
+
+.office-side {
+  display: grid;
+  gap: 16px;
+}
+
+.presence-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dm-ok);
+  flex: none;
+}
+
+.roster h3:first-of-type {
+  margin-top: 14px;
+}
+
+.roster-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.roster-list button {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.roster-list button:hover {
+  background: var(--dm-sunk);
+}
+
+.person-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  animation: caption-in 260ms ease both;
+}
+
+.card-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.person-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 34px;
+}
+
+.person-card-avatar {
+  flex: none;
+  display: grid;
+  place-items: end center;
+  width: 96px;
+  height: 104px;
+  padding-bottom: 2px;
+  border-radius: 18px;
+  background: var(--dm-stage-raised);
+  overflow: hidden;
+}
+
+.person-card h2 {
+  font-size: 20px;
+}
+
+.person-role {
+  color: var(--dm-ink-soft);
+  font-size: 14px;
+}
+
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px !important;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--dm-sunk);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.presence-home {
+  background: var(--dm-accent-soft);
+  color: var(--dm-accent-ink);
+}
+
+.person-email {
+  font-size: 13.5px;
+  color: var(--dm-ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.person-card h3 {
+  margin: 10px 0 0;
+}
+
+.own-list,
+.part-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.own-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.own-docs li {
+  align-items: flex-start;
+}
+
+.own-docs svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--dm-accent-ink);
+}
+
+.part-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.part-list li > div {
+  display: grid;
+  min-width: 0;
+}
+
+.part-list .dm-icon-button {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  background: var(--dm-accent);
+  border-color: var(--dm-accent);
+  color: var(--dm-ink);
+}
+
+.ask-tams {
+  margin-top: 10px;
+}
+
+/* how everything works */
+
+.how {
+  margin-top: 20px;
+}
+
+.how-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.how-scroll {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.how-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.how-table th,
+.how-table td {
+  padding: 9px 10px;
+  text-align: left;
+  border-top: 1px solid var(--dm-line);
+  vertical-align: middle;
+}
+
+.how-table thead th {
+  border-top: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dm-ink-faint);
+  vertical-align: bottom;
+}
+
+.how-table tbody th {
+  font-weight: 650;
+  font-size: 15px;
+}
+
+.how-table tbody tr {
+  transition: background-color 300ms ease;
+}
+
+.how-table tbody tr.is-playing {
+  background: var(--dm-accent-soft);
+}
+
+.how-table a,
+.own-list a,
+.part-list a {
+  font-weight: 600;
+}
+
+.how-table .how-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 1%;
+}
+
+.how-table .how-person,
+.how-table .how-cell {
+  text-align: center;
+  width: 64px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.how-person button {
+  display: inline-grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--dm-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.how-person button:hover {
+  background: var(--dm-sunk);
+}
+
+.how-person svg {
+  border-radius: 50%;
+  background: var(--dm-sunk);
+}
+
+.how-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--dm-outline);
+  background: var(--dm-raised);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    transform 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.how-mark.is-owner {
+  background: var(--dm-stage);
+  color: var(--dm-stage-ink);
+}
+
+.how-mark.is-live {
+  transform: scale(1.22);
+  box-shadow: 0 0 0 4px var(--dm-accent);
+}
+
+.how-none {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dm-line);
+}
+
+.how-play {
+  text-align: right !important;
+  width: 1%;
+}
+
+.how-key {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px !important;
+  font-size: 12.5px;
+  color: var(--dm-ink-soft);
+}
+
+.how-key .how-mark {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+}
+
+.how-key .how-mark:not(:first-child) {
+  margin-left: 14px;
+}
+
+@container dm-page (max-width: 940px) {
+  .office-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .travel,
+  .travel-ring,
+  .travel-trail,
+  .travel-doc,
+  .dm-page .caption-title,
+  .person-card {
+    animation: none;
+    transition: none;
+  }
+
+  .travel-trail {
+    opacity: 0;
+  }
+}

@@ -31,15 +31,37 @@ Then accreditation season arrives and the office spends weeks proving that its o
 - **Tams.** Ask Tams how something is done in this office.
   Tams finds the relevant passages in the office's documents and processes, answers only from them, and names the sources.
   When a documented process answers the question, Tams offers "Show me in the office".
+- **The office.** A top-down office with everyone at their desk, or in the "Working from home" strip, and Tams at the front desk.
+  Play a process and the work moves from desk to desk, one step at a time, with who does it, the document they use and a real example.
+- **Process library.** Every process is drawn as a flow with start, tasks, decisions and end, and as a plain checklist.
+  The process owner or an admin can edit the steps, and Tams answers from the new version straight away.
 - **One link for everyone.** The account decides what opens.
   An admin sees and edits the whole office.
   A staff account opens on what it owns, can read the rest, and can edit only its own records.
+
+## What you can do
+
+One sentence per screen.
+
+| Screen | Where | What you can do there |
+| --- | --- | --- |
+| Sign in | `/` when signed out | Sign in with a username or email and a password, or pick one of the demo accounts. |
+| Filing cabinet | `/cabinet` | See every course with its document count and readiness, and the documents touched last. |
+| Course | `/cabinet/BUS101` | Browse one course by chapter and filter it by kind of document. |
+| Document | `/documents/:id` | Read a document's record, extracted text and versions, download the original, and edit the record if it is yours. |
+| File a document | `/cabinet/file` | Attach or write a document and let "Where does this go?" name its folder, file name and version before you file it. |
+| Readiness | `/readiness` | Read the accreditation score for the office and each course, and follow a link to close each named gap. |
+| Ask Tams | `/tams` | Ask how something is done here and get a cited answer from the local model, with "Show me in the office" when a process answers it. |
+| The office | `/office` | See who is in and who is at home, click anyone to see what they own, and play any process to watch the work move from desk to desk. |
+| Processes | `/processes` | See every documented process with its owner, its trigger and the people who take part. |
+| Process | `/processes/:id` | Read one process as a flow or a checklist, play it step by step, and edit its steps if you own it or are an admin. |
+| Settings | `/settings` | Check that Ollama, both models and Tams' index are ready, and see which optional parts would need the internet. |
 
 ## Why this runs on local AI
 
 - **Confidential documents never leave the machine.** Quizzes, answer keys and staff records are exactly what an office should not paste into a cloud chatbot.
   In local mode nothing is sent anywhere.
-- **It works when the wifi dies.** Sign-in, the cabinet, readiness and Tams all run on this computer.
+- **It works when the wifi dies.** Sign-in, the cabinet, readiness, the office, the process library and Tams all run on this computer.
   Pull the network cable and ask Tams again: same answer.
 - **No cost per question.** A newcomer can ask the same thing ten times without anyone watching a bill.
 
@@ -55,6 +77,8 @@ Then accreditation season arrives and the office spends weeks proving that its o
 | Embeddings (`nomic-embed-text` via Ollama) | This machine | No |
 | Tams' answers in Local mode (`qwen3:4b` via Ollama) | This machine | No |
 | Accreditation readiness | This machine, no model involved | No |
+| Office view, process flows and playback | This machine, drawn in the browser with SVG and CSS | No |
+| Process edits | This machine, `data/office/processes.json`, re-indexed for Tams on save | No |
 | Fonts (Inter) | Bundled with the app | No |
 | Tams' answers in Cloud mode (`claude-sonnet-5-5`) | Anthropic API, optional, off by default | Yes |
 | Google sign-in and Drive mirror | Google APIs, optional, arriving in a separate module | Yes |
@@ -93,11 +117,13 @@ If Ollama itself is not running, Tams still looks the answer up by keyword and s
 
 ## Hardware
 
-- Built and tested on a Mac mini with Apple M4 and 16 GB of memory, macOS 26.5, Node 26.6, Ollama 0.40.
-- Sized for the demo machine, an 8 GB M2 Mac mini.
-- With both models loaded Ollama uses about 3.3 GB (2.9 GB for `qwen3:4b`, 0.4 GB for `nomic-embed-text`).
+**Hardware line:** built and tested on a Mac mini (Apple M4, 16 GB memory, macOS 26.5, Node 26.6, Ollama 0.40); sized for the demo machine, a Mac mini with Apple M2 and 8 GB memory, with every model running on the machine itself.
+
+- With both models loaded Ollama uses about 3.3 GB (2.9 GB for `qwen3:4b`, 0.4 GB for `nomic-embed-text`), which leaves room on an 8 GB machine for the app and a browser.
 - On the test machine the first word of a grounded answer arrives in about 1 to 4 seconds and a full process answer takes about 4 to 9 seconds.
+- The office view and the process playback are CSS transforms and SVG with one timer and no animation loop, so they stay smooth on a small machine.
 - There are no native modules to compile, so `npm install` does not need Xcode or Python.
+- Not yet run on the 8 GB M2 itself: that is the one check left for the demo machine.
 
 ## Setup
 
@@ -151,17 +177,50 @@ The password for every demo account is `deskmate`.
 "Continue with Google" is on the sign-in page.
 In this build it reports that Google sign-in is not switched on yet and sends you back to the password form.
 
-### A five minute tour
+## Five-minute demo script
 
-1. Sign in as `marisol`.
-2. Open the filing cabinet and go into FIN201, then a chapter, then a quiz.
-3. Open Readiness and read the big number: 78 percent, 28 of 36 required documents.
-4. Click "File it" on a missing quiz, read "Where does this go?", and file it.
-   Readiness goes up.
-5. Open Ask Tams and ask "How do I release a quiz?".
-   The answer streams from the local model, names its source, and offers "Show me in the office".
-6. Turn the wifi off and ask again.
-7. Sign out and sign in as `bea` to see the same screens scoped to a new hire.
+Run the built app (`npm run build && npm start`), open http://localhost:4747, and keep the window at about 1440 by 900.
+Every step below was run this way, in Local mode, with no API key on the machine.
+
+1. **Sign in** (20 seconds).
+   Click the "Marisol" demo account, then "Sign in".
+   She is the office administrator, so she sees the whole office.
+2. **Filing cabinet** (40 seconds).
+   The cabinet shows 42 documents in four drawers.
+   Open FIN201, then the Chapter 1 quiz: one record, the extracted text, and its version.
+3. **Readiness** (30 seconds).
+   Open Readiness and read the big number: 78 percent, 28 of 36 required documents, with 8 gaps named.
+   This is plain counting with no AI.
+4. **Ask Tams** (50 seconds).
+   Open Ask Tams, check the header says "Local mode", and ask "How do I release a quiz?".
+   The answer streams from `qwen3:4b` on this machine: eight steps in order with who does each, the office's own FIN201 example, and the source chip "Release a quiz".
+5. **Show me in the office** (50 seconds).
+   Press "Show me in the office".
+   The process plays in the office: the desk of the person doing each step lights up, a dot carries the work from Lourdes at home to Bea in the office and back, and Tams' speech bubble shows the step, the document and the real example.
+   Space pauses, and the arrow keys step forward and back.
+6. **The process page** (30 seconds).
+   Click the process name in the speech bubble.
+   The same process is drawn as a flow, and the Steps tab lists it as a checklist.
+7. **Edit a step and save** (50 seconds).
+   Open the Edit tab, find "Schedule the release", and add this sentence to its description: "Then message the class representative on the group chat."
+   Press "Save process".
+   The page answers "Saved. Everyone in the office now sees this version, and Tams answers from it."
+8. **It persisted, and Tams knows** (40 seconds).
+   Reload the page: the new sentence is still there.
+   Open Ask Tams and ask "After I schedule a quiz release, who do I message?".
+   Tams answers with the class representative and names "Release a quiz" as a source.
+9. **Pull the plug** (optional, 30 seconds).
+   Turn the wifi off and ask Tams again.
+   Every request the app makes goes to this machine, so nothing changes.
+
+To put the sample office back the way it shipped, stop the app and run `npm run seed -- --reset`.
+
+Other things worth a look if there is time:
+
+- Click anyone in the office to see what they own and which processes they take part in, then "Ask Tams about this".
+- Play "File new course material" or "Staff turnover handover" from the "How everything works" chart: the work crosses more desks.
+- Sign out and sign in as `bea`, the new hire: the cabinet opens on what she owns, and the process editor lets her try changes but not save them.
+- Click "File it" on a gap in Readiness, file the missing document, and watch the score go up.
 
 ## Commands
 
@@ -192,6 +251,7 @@ Deskmate needs none of them to run.
    The answer streams to the browser as it is written.
 4. **Show.** The final frame lists the documents that were cited.
    When a documented process is the best match, it also carries that process id, which becomes the "Show me in the office" button.
+5. **Stay current.** Filing a document or saving a process edit re-indexes just that document or process, so the next answer uses it.
 
 `qwen3:4b` is a reasoning model that thinks out loud for many seconds before it answers, even when asked not to.
 Deskmate sends `think: false` and hands the model an already-finished thought, so the first word arrives in a few seconds instead of twenty.
@@ -202,7 +262,11 @@ Deskmate sends `think: false` and hands the model an already-finished thought, s
 server/src/            Express API, SQLite, sign-in, readiness
 server/src/tams/       Tams: chunking, embeddings, retrieval, local and cloud chat
 server/src/google.ts   The seam for Google sign-in and the Drive mirror
-web/src/               React app
+web/src/               React app: sign-in, cabinet, readiness, Tams' chat, settings
+web/src/office/        The office view, person cards and the "How everything works" chart
+web/src/processes/     Process library: flow, checklist, playback and the editor
+web/src/avatars/       The chibi people and Tams, drawn as SVG
+web/tests/             Tests for flow layout, playback, the editor rules and desk placement
 web/src/styles/tokens.css   Colour, type and spacing tokens shared by every module
 data/sample-office/    The invented office that ships with the repo
 data/office/           Your working copy, created on first run, never committed
@@ -228,14 +292,12 @@ Keep real office documents out of this repository.
 
 The method is "work on paper, show on stage".
 Work screens - the cabinet, readiness and settings - sit on warm paper with ink type.
-Screens that show something - sign-in, Tams and the office view - sit on one deep stage colour.
+Screens that show something - sign-in, Tams, the office and the process library - sit on one deep stage colour.
 One accent colour is shared by both.
 The tokens are in `web/src/styles/tokens.css`.
 
 ## What is not in this build yet
 
-- The animated office view and the process library are being built as a separate module.
-  The routes `/office` and `/processes/:id` are reserved and show a placeholder.
 - Google sign-in and the Google Drive mirror are being built as a separate module.
   The sign-in button and the `/auth/google` route are in place and report that Google is not switched on.
 

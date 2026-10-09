@@ -5,6 +5,13 @@ import { chunkProcess, chunkText } from "./chunk.ts";
 // retrieve.ts opens the database on import, so its pure helpers are loaded against a throwaway one.
 process.env.DESKMATE_DB = ":memory:";
 const { cosine, keywordScore, tokens } = await import("./retrieve.ts");
+const { plainDashes } = await import("./chat.ts");
+
+test("answers are written with plain dashes only", () => {
+  assert.equal(plainDashes("France\u2014this"), "France - this");
+  assert.equal(plainDashes("weeks 3 \u2013 5"), "weeks 3 - 5");
+  assert.equal(plainDashes("FIN201-ch01 - quiz"), "FIN201-ch01 - quiz");
+});
 
 test("cosine similarity", () => {
   assert.equal(cosine([1, 0], [1, 0]), 1);

@@ -84,6 +84,11 @@ function citedNumbers(answer: string): Set<number> {
   return found;
 }
 
+// The office writes with plain dashes. Models are told so, and still slip in long ones.
+export function plainDashes(text: string): string {
+  return text.replace(/ ?[\u2013\u2014] ?/g, " - ");
+}
+
 // Runs one chat turn. `write` receives answer text as it is generated.
 // The returned frame names the sources and, when a process answers the question, its id.
 export async function answer(turns: Turn[], requested: Mode, write: (text: string) => void, signal?: AbortSignal): Promise<FinalFrame> {
@@ -98,7 +103,8 @@ export async function answer(turns: Turn[], requested: Mode, write: (text: strin
   let notice: string | undefined;
   let lookupOnly = false;
   let text = "";
-  const emit = (piece: string) => {
+  const emit = (raw: string) => {
+    const piece = plainDashes(raw);
     text += piece;
     write(piece);
   };
@@ -135,9 +141,12 @@ export async function answer(turns: Turn[], requested: Mode, write: (text: strin
     }
   }
 
+  // The process that answers the question is always named as a source, even when the model
+  // credits one of its facts to another excerpt: it is what "Show me in the office" plays.
+  const processId = retrieval.processId && processes().some((p) => p.id === retrieval.processId) ? retrieval.processId : undefined;
   const cited = citedNumbers(text);
   const used = sources.filter((s) => cited.has(s.n));
-  const shown = used.length ? used : sources;
+  const shown = used.length ? sources.filter((s) => cited.has(s.n) || (s.type === "process" && s.id === processId)) : sources;
   const frame: FinalFrame = {
     sources: shown.filter((s) => s.type === "document").map((s) => ({ docId: s.id, title: s.title, n: s.n })),
     processes: shown.filter((s) => s.type === "process").map((s) => ({ processId: s.id, title: s.title, n: s.n })),
@@ -145,7 +154,7 @@ export async function answer(turns: Turn[], requested: Mode, write: (text: strin
     model: lookupOnly ? "lookup" : mode === "cloud" ? CLOUD_MODEL : CHAT_MODEL,
     retrieval: sources.length ? retrieval.method : "none",
   };
-  if (retrieval.processId && processes().some((p) => p.id === retrieval.processId)) frame.processId = retrieval.processId;
+  if (processId) frame.processId = processId;
   if (notice) frame.notice = notice;
   return frame;
 }

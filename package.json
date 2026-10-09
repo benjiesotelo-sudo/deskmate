@@ -10,13 +10,13 @@
   },
   "scripts": {
     "dev": "tsx watch --clear-screen=false server/src/index.ts",
-    "build": "tsc -p server --noEmit && tsc -p web --noEmit && vite build --config web/vite.config.ts",
+    "build": "tsc -p server --noEmit && tsc -p web --noEmit && tsc -p web/tests --noEmit && vite build --config web/vite.config.ts",
     "start": "NODE_ENV=production tsx server/src/index.ts",
     "seed": "tsx server/src/cli/seed.ts",
     "index": "tsx server/src/cli/reindex.ts",
     "samples": "tsx scripts/build-sample-office.ts",
-    "typecheck": "tsc -p server --noEmit && tsc -p web --noEmit",
-    "test": "tsx --test \"server/src/**/*.test.ts\""
+    "typecheck": "tsc -p server --noEmit && tsc -p web --noEmit && tsc -p web/tests --noEmit",
+    "test": "tsx --test \"server/src/**/*.test.ts\" \"web/tests/*.test.ts\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

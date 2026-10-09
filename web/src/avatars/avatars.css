@@ -1,0 +1,145 @@
+/* Idle motion for the avatars. Transforms only, so it stays cheap on a small machine. */
+
+.av-body,
+.av-head,
+.av-eyes,
+.av-sway,
+.tams-body,
+.tams-head,
+.tams-eyes,
+.tams-ear,
+.tams-tail,
+.tams-mouth {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.av-idle .av-body {
+  animation: av-breathe 2.6s ease-in-out infinite;
+}
+
+.av-idle .av-head {
+  animation: av-nod 2.6s ease-in-out infinite;
+}
+
+.av-idle .av-eyes,
+.tams-idle .tams-eyes {
+  transform-origin: 50% 50%;
+  animation: av-blink 4.8s linear infinite;
+}
+
+.av-idle .av-sway {
+  transform-origin: 0% 0%;
+  animation: av-sway 2.6s ease-in-out infinite;
+}
+
+.tams-idle .tams-body {
+  animation: av-breathe 3.2s ease-in-out infinite;
+}
+
+.tams-idle .tams-head {
+  animation: av-nod 3.2s ease-in-out infinite;
+}
+
+.tams-idle .tams-ear-left {
+  transform-origin: 100% 50%;
+  animation: tams-ear 5.4s ease-in-out infinite;
+}
+
+.tams-idle .tams-ear-right {
+  transform-origin: 0% 50%;
+  animation: tams-ear 5.4s ease-in-out infinite reverse;
+}
+
+.tams-idle .tams-tail {
+  transform-origin: 0% 100%;
+  animation: tams-tail 2.8s ease-in-out infinite;
+}
+
+.tams-talking .tams-mouth {
+  transform-origin: 50% 0%;
+  animation: tams-talk 0.42s ease-in-out infinite;
+}
+
+@keyframes av-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.015, 0.975);
+  }
+}
+
+@keyframes av-nod {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1.1px);
+  }
+}
+
+@keyframes av-blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  96.5% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes av-sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes tams-ear {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+  90% {
+    transform: rotate(-14deg);
+  }
+  94% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes tams-tail {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes tams-talk {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .av-idle *,
+  .tams-idle *,
+  .tams-talking * {
+    animation: none !important;
+  }
+}
