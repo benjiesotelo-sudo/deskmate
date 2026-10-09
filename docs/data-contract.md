@@ -184,9 +184,29 @@ When `processId` is present, link to `/office?play=<processId>`.
 - `POST /auth/login` with `{ username, password }` sets an HTTP-only cookie named `deskmate_session`.
 - `POST /auth/logout` clears it.
 - `GET /api/me` returns `{ person, office }`; `person` is `null` when signed out.
-- `GET /auth/google` and `GET /auth/google/status` live in `server/src/google.ts`.
-  Today they report that Google sign-in is not switched on.
-  The Google module replaces those handlers and calls `startSession(res, personId)` from `server/src/auth.ts` after Google confirms the person.
+- `GET /auth/google` starts Google sign-in and `GET /auth/google/callback` finishes it.
+  Both live in `server/src/google.ts` and call `startSession(res, personId)` from `server/src/auth.ts` once Google confirms the person.
+  `GET /auth/google?link=1` connects a Google account to the person who is already signed in.
+  When sign-in cannot go ahead the browser returns to `/signin?google=<reason>`, where the reason is `not-configured`, `offline`, `denied`, `expired` or `failed`.
+- `GET /auth/google/status` returns `{ configured, ready, online, message, account }`.
+  `account` is `{ email, name, driveGranted, connected }` for the signed-in person, or `null`.
+  No token ever appears in a response.
+
+## Drive mirror
+
+A mirrored document is an ordinary `DocRecord` with two extra fields: `mirrored: true` and `driveFileId`.
+Its `path` starts with `mirror/` and points into `data/mirror/` in place of the office folder.
+Documents filed on this computer do not carry either field.
+
+- `GET /api/drive/status` returns the connection, the counts, `statusLine`, `lastSync`, `online` and the running or last `job`.
+  It never calls Google for anything but a short reachability check, so it answers when offline.
+- `GET /api/drive/tree` lists the connected folder as flat entries with `parentId`, `state` and, once filed, the `doc` it became.
+  `state` is `folder`, `remote`, `local`, `changed` or `stays`.
+- `GET /api/drive/folders?parent=&search=&shared=1` lists folders to choose from.
+- `POST /api/drive/connect` with `{ folder }` takes a Drive folder link or ID.
+- `POST /api/drive/sync` and `POST /api/drive/download` start a background job and answer `202`. Follow it through the status route.
+- `POST /api/drive/disconnect` stops mirroring and keeps everything already filed.
+- When Google cannot be reached these answer `503` with `{ error, offline: true }`.
 
 ## Web routes
 

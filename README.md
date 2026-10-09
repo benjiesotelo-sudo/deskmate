@@ -35,6 +35,9 @@ Then accreditation season arrives and the office spends weeks proving that its o
   Play a process and the work moves from desk to desk, one step at a time, with who does it, the document they use and a real example.
 - **Process library.** Every process is drawn as a flow with start, tasks, decisions and end, and as a plain checklist.
   The process owner or an admin can edit the steps, and Tams answers from the new version straight away.
+- **Google sign-in and the Drive mirror.** Sign in with a username and password, or with Google.
+  Connect the office's Google Drive folder and Deskmate copies it onto this computer and files every document into the cabinet from the folder it sits in.
+  "Download everything" takes the whole folder offline, so the cabinet and Tams keep working when the internet is gone.
 - **One link for everyone.** The account decides what opens.
   An admin sees and edits the whole office.
   A staff account opens on what it owns, can read the rest, and can edit only its own records.
@@ -45,7 +48,7 @@ One sentence per screen.
 
 | Screen | Where | What you can do there |
 | --- | --- | --- |
-| Sign in | `/` when signed out | Sign in with a username or email and a password, or pick one of the demo accounts. |
+| Sign in | `/` when signed out | Sign in with a username or email and a password, with Google, or pick one of the demo accounts. |
 | Filing cabinet | `/cabinet` | See every course with its document count and readiness, and the documents touched last. |
 | Course | `/cabinet/BUS101` | Browse one course by chapter and filter it by kind of document. |
 | Document | `/documents/:id` | Read a document's record, extracted text and versions, download the original, and edit the record if it is yours. |
@@ -56,6 +59,7 @@ One sentence per screen.
 | Processes | `/processes` | See every documented process with its owner, its trigger and the people who take part. |
 | Process | `/processes/:id` | Read one process as a flow or a checklist, play it step by step, and edit its steps if you own it or are an admin. |
 | Settings | `/settings` | Check that Ollama, both models and Tams' index are ready, and see which optional parts would need the internet. |
+| Drive mirror | `/settings`, under "Connect a Drive folder" | Connect a Google Drive folder, see it beside the local cabinet, sync it, and download everything for offline use. |
 
 ## Why this runs on local AI
 
@@ -81,8 +85,15 @@ One sentence per screen.
 | Process edits | This machine, `data/office/processes.json`, re-indexed for Tams on save | No |
 | Fonts (Inter) | Bundled with the app | No |
 | Tams' answers in Cloud mode (`claude-sonnet-5-5`) | Anthropic API, optional, off by default | Yes |
-| Google sign-in and Drive mirror | Google APIs, optional, arriving in a separate module | Yes |
+| Mirrored Drive files, once downloaded | This machine, `data/mirror/` | No |
+| Google sign-in | Google OAuth, optional | Yes |
+| Drive sync and "Download everything" | Google Drive API, optional | Yes |
 | First-time setup (`npm install`, `ollama pull`) | Downloads once | Yes, once |
+
+Sign-in by password, the cabinet, readiness, Tams in Local mode and the process library run with no internet.
+Google sign-in, Drive sync and the Claude switch need internet.
+When the internet is down, the Drive screen says it is offline and shows the time of the last sync.
+The mirrored documents stay in the cabinet, and Tams keeps answering from them.
 
 Cloud mode is offered in the chat header only when `ANTHROPIC_API_KEY` is set and the network is reachable.
 In Cloud mode the passages Tams retrieved are sent to Anthropic to write the answer.
@@ -104,6 +115,7 @@ If Ollama itself is not running, Tams still looks the answer up by keyword and s
 - Web: React 19, React Router 7, Vite, Inter through `@fontsource-variable/inter`.
 - Documents: `unpdf` for PDF text, `mammoth` for Word text, `pdf-lib` and `docx` to generate the sample files.
 - Cloud mode: `@anthropic-ai/sdk`.
+- Google: the OAuth 2.0 code flow and the Drive v3 REST API, called with the built-in `fetch`. No Google library is installed.
 - Local model server: Ollama.
 
 **AI development tools**
@@ -174,8 +186,70 @@ The password for every demo account is `deskmate`.
 | `jomar` | Jomar Velez, coordinator of MKT150 | Staff: their own documents first |
 | `bea` | Bea Soliman, Program Assistant, new hire | Staff: their own documents first |
 
-"Continue with Google" is on the sign-in page.
-In this build it reports that Google sign-in is not switched on yet and sends you back to the password form.
+"Continue with Google" is on the sign-in page, next to the password form.
+It needs the two Google settings described in the next section.
+Without them the button says so and the password form keeps working.
+
+## Google sign-in and the Drive mirror
+
+This part is optional.
+Deskmate runs without it, and nothing here is needed for the local demo.
+
+### What it does
+
+- **Sign in with Google.** A Google account whose email matches a person in the office signs in as that person.
+  Any other Google account signs in as a new staff account with a desk of its own.
+  A person who signed in with a password can connect a Google account from Settings, and from then on Google signs them in as themselves.
+- **Connect a Drive folder.** In Settings, pick a folder from your Drive or paste its link or ID.
+  Deskmate lists the folder and everything under it and shows the tree beside the local cabinet.
+- **Sync.** Pulls new and changed documents into `data/mirror/<folder>/` and files each one into the cabinet.
+  The record comes from the folder path: a file in `BUS101/Chapter 4/` named "Quiz" becomes the BUS101 Chapter 4 quiz.
+  Google Docs come down as Word files, and Google Sheets and Slides come down as PDF.
+  Every mirrored document is marked "from Drive" and has an "Edit the record" link in case the guess was wrong.
+  A mirrored document becomes current only when its slot is empty. Otherwise it waits as a draft and replaces nothing.
+  After a sync Tams indexes the new documents, so it can answer from them.
+- **Download everything.** Fetches every file in the folder, including the ones Sync leaves for later, such as images and spreadsheets.
+  A progress bar counts the files, and one line says "Everything downloaded - works offline" or "N files not yet local".
+- **Local edits go back to Drive.** When you edit a mirrored document's record, the next sync writes the record beside the file in Drive as `<file name>.deskmate.json`.
+  Another computer that connects the same folder reads that file and files the document the same way.
+  Deskmate never edits, moves or deletes the documents themselves in Drive.
+- **Offline.** With the internet down, the Drive screen says "Offline" with the time of the last sync, and the Sync buttons wait.
+  Password sign-in, the mirrored cabinet and Tams keep working.
+
+### Set it up
+
+The Google Cloud project used for the hackathon is in Testing mode.
+Only the author's own Gmail account is on its list of test users, so nobody else can sign in through it.
+To try Google sign-in yourself, use your own project. It takes about five minutes.
+
+1. Open https://console.cloud.google.com, create a project, and enable the **Google Drive API** under "APIs and services".
+2. Set up the OAuth consent screen as "External", leave it in Testing mode, and add your own Google account as a test user.
+3. Add the scope `https://www.googleapis.com/auth/drive`. The scopes `openid`, `email` and `profile` are there by default.
+4. Under "Credentials", create an OAuth client ID of type "Web application".
+   Add this authorised redirect URI exactly: `http://localhost:4747/auth/google/callback`
+5. Put the client ID and secret in a file in your home folder, outside the repository:
+
+   ```bash
+   cat > ~/.deskmate-google.env <<'ENV'
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ENV
+   chmod 600 ~/.deskmate-google.env
+   ```
+
+   The same two names also work as environment variables or in `.env`, which git ignores.
+   Environment variables win, then `.env`, then `~/.deskmate-google.env`.
+6. Restart Deskmate and open http://localhost:4747 - use `localhost`, not `127.0.0.1`, because Google sends you back to the exact address above.
+7. Click "Continue with Google", tick the Drive box on Google's screen, and you are in.
+8. Open Settings, pick a folder under "Connect a Drive folder", and press Sync.
+
+Good to know:
+
+- Deskmate asks for these scopes and no others: `openid email profile https://www.googleapis.com/auth/drive`.
+- The refresh token is stored in the SQLite database on this computer. It is never sent to the browser and never written to a log.
+- In Testing mode Google expires a refresh token after seven days. When that happens the Drive screen asks you to sign in with Google again.
+- If the app runs on another port, set `GOOGLE_REDIRECT_URI` to match and register that address in the Google project.
+- Use a Drive folder of sample files for a demo. `data/mirror/` is ignored by git, so mirrored documents never reach the repository.
 
 ## Five-minute demo script
 
@@ -209,9 +283,15 @@ Every step below was run this way, in Local mode, with no API key on the machine
    Reload the page: the new sentence is still there.
    Open Ask Tams and ask "After I schedule a quiz release, who do I message?".
    Tams answers with the class representative and names "Release a quiz" as a source.
-9. **Pull the plug** (optional, 30 seconds).
+9. **Google and Drive** (optional, 60 seconds, needs the Google settings and the internet).
+   Sign out, click "Continue with Google" and sign in.
+   Open Settings, pick a Drive folder of sample files under "Connect a Drive folder", and press Sync.
+   The files appear in the cabinet, marked "from Drive", filed by the folder they sat in.
+   Press "Download everything" and read the line "Everything downloaded - works offline".
+10. **Pull the plug** (optional, 30 seconds).
    Turn the wifi off and ask Tams again.
    Every request the app makes goes to this machine, so nothing changes.
+   If a Drive folder is connected, Settings now reads "Offline" with the time of the last sync, and the mirrored documents still open.
 
 To put the sample office back the way it shipped, stop the app and run `npm run seed -- --reset`.
 
@@ -261,15 +341,18 @@ Deskmate sends `think: false` and hands the model an already-finished thought, s
 ```
 server/src/            Express API, SQLite, sign-in, readiness
 server/src/tams/       Tams: chunking, embeddings, retrieval, local and cloud chat
-server/src/google.ts   The seam for Google sign-in and the Drive mirror
+server/src/google.ts   Routes for Google sign-in and the Drive mirror
+server/src/google/     OAuth, the Drive client, record inference and the mirror itself
 web/src/               React app: sign-in, cabinet, readiness, Tams' chat, settings
 web/src/office/        The office view, person cards and the "How everything works" chart
 web/src/processes/     Process library: flow, checklist, playback and the editor
 web/src/avatars/       The chibi people and Tams, drawn as SVG
+web/src/drive/         The Drive mirror screen shown in Settings
 web/tests/             Tests for flow layout, playback, the editor rules and desk placement
 web/src/styles/tokens.css   Colour, type and spacing tokens shared by every module
 data/sample-office/    The invented office that ships with the repo
 data/office/           Your working copy, created on first run, never committed
+data/mirror/           Files pulled from the connected Drive folder, never committed
 scripts/               Setup script and the sample office generator
 docs/data-contract.md  The API shapes other modules build on
 ```
@@ -298,8 +381,12 @@ The tokens are in `web/src/styles/tokens.css`.
 
 ## What is not in this build yet
 
-- Google sign-in and the Google Drive mirror are being built as a separate module.
-  The sign-in button and the `/auth/google` route are in place and report that Google is not switched on.
+- The Drive mirror copies documents one way, from Drive to this computer.
+  Only the record of a mirrored document travels back to Drive, as a small file beside it.
+  Editing the document itself in Deskmate and sending it back is not built.
+- Google Forms, Sites and shortcuts have no file to download, so they stay in Drive and the Drive screen says so.
+- A file removed from Drive keeps its local copy and its record. Deskmate never deletes a filed document on its own.
+- A Drive folder for a course that is not in the office's course list is filed under OFFICE until someone edits the record.
 
 ## Licence
 
