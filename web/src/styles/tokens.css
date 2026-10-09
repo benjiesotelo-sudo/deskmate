@@ -1,0 +1,69 @@
+/*
+  Deskmate design tokens.
+  The method: work on paper, show on stage.
+  - Paper: warm, quiet, ink type. Used for the screens where work gets done
+    (cabinet, readiness, settings).
+  - Stage: one deep colour. Used where Deskmate shows something
+    (Tams' chat, the office view, sign-in).
+  One accent, vermilion, is shared by both.
+  Every module should use these tokens instead of its own colours.
+*/
+
+:root {
+  /* Paper */
+  --paper: #f6f0e4;
+  --paper-raised: #fffbf3;
+  --paper-sunk: #ede5d5;
+  --rule: #dcd2bf;
+  --ink: #1d1a16;
+  --ink-soft: #5b544a;
+  --ink-faint: #8c8376;
+
+  /* Stage */
+  --stage: #1b1e4b;
+  --stage-deep: #121438;
+  --stage-raised: #272b66;
+  --stage-rule: #3a3f86;
+  --on-stage: #f4f1ff;
+  --on-stage-soft: #b9b8e0;
+
+  /* Accent and signals */
+  --accent: #ff5a3c;
+  --accent-ink: #c2371f;
+  --accent-soft: #ffe1d8;
+  --ok: #1f7a54;
+  --ok-soft: #dcefe4;
+  --warn: #9a6200;
+  --warn-soft: #fbebc8;
+  --gap: #b3261e;
+  --gap-soft: #f9deda;
+
+  /* Type */
+  --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-hero: clamp(5rem, 13vw, 10.5rem);
+  --weight-regular: 420;
+  --weight-medium: 560;
+  --weight-bold: 720;
+  --tracking-tight: -0.035em;
+  --tracking-label: 0.08em;
+
+  /* Space and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --shadow: 0 1px 0 rgba(29, 26, 22, 0.04), 0 8px 24px -12px rgba(29, 26, 22, 0.18);
+}
