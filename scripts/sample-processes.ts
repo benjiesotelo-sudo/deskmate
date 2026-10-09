@@ -68,10 +68,10 @@ export const processes: ProcessSeed[] = [
         id: "supersede",
         title: "Mark the old version superseded",
         kind: "task",
-        actor: "bea",
+        actor: "marisol",
         description:
-          "Open the old document's record and change its status from current to superseded. Never delete it: accreditors may ask what was used in an earlier term.",
-        example: "BUS101-ch01-deck-v1 is changed to superseded.",
+          "Only a document's owner or an office admin can change its record, so the office administrator opens the old document and changes its status from current to superseded. Never delete it: accreditors may ask what was used in an earlier term.",
+        example: "Marisol changes BUS101-ch01-deck-v1 to superseded.",
         artifact: "bus101-ch01-deck-v1",
         next: ["name-file"],
       },
