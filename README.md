@@ -208,7 +208,7 @@ Every step below was run this way, in Local mode, with no API key on the machine
 8. **It persisted, and Tams knows** (40 seconds).
    Reload the page: the new sentence is still there.
    Open Ask Tams and ask "After I schedule a quiz release, who do I message?".
-   Tams answers with the class representative and cites "Release a quiz".
+   Tams answers with the class representative and names "Release a quiz" as a source.
 9. **Pull the plug** (optional, 30 seconds).
    Turn the wifi off and ask Tams again.
    Every request the app makes goes to this machine, so nothing changes.
