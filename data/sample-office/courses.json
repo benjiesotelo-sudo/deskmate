@@ -1,0 +1,70 @@
+[
+  {
+    "id": "BUS101",
+    "title": "Foundations of Business",
+    "term": "1st Semester 2026-2027",
+    "coordinator": "rafael",
+    "chapters": [
+      {
+        "number": 1,
+        "title": "What a Business Does"
+      },
+      {
+        "number": 2,
+        "title": "Forms of Ownership"
+      },
+      {
+        "number": 3,
+        "title": "Reading a Simple Income Statement"
+      },
+      {
+        "number": 4,
+        "title": "Ethics and Social Responsibility"
+      }
+    ]
+  },
+  {
+    "id": "FIN201",
+    "title": "Personal Finance Basics",
+    "term": "1st Semester 2026-2027",
+    "coordinator": "lourdes",
+    "chapters": [
+      {
+        "number": 1,
+        "title": "Budgeting and Cash Flow"
+      },
+      {
+        "number": 2,
+        "title": "Saving and the Time Value of Money"
+      },
+      {
+        "number": 3,
+        "title": "Credit and Borrowing"
+      },
+      {
+        "number": 4,
+        "title": "Starting to Invest"
+      }
+    ]
+  },
+  {
+    "id": "MKT150",
+    "title": "Principles of Marketing",
+    "term": "1st Semester 2026-2027",
+    "coordinator": "jomar",
+    "chapters": [
+      {
+        "number": 1,
+        "title": "Understanding Customers"
+      },
+      {
+        "number": 2,
+        "title": "The Marketing Mix"
+      },
+      {
+        "number": 3,
+        "title": "Digital Channels"
+      }
+    ]
+  }
+]
